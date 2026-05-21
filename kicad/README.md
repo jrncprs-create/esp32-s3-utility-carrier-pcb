@@ -20,7 +20,7 @@ Open in KiCad:
 |---|---|
 | `esp32-s3-utility-carrier.kicad_pro` | Project root |
 | `esp32-s3-utility-carrier.kicad_sch` | Placeholder schematic |
-| `esp32-s3-utility-carrier.kicad_pcb` | Placeholder PCB (130×85 mm, v0.9.1 routing) |
+| `esp32-s3-utility-carrier.kicad_pcb` | Placeholder PCB (130×85 mm, v0.9.2 minimal routing) |
 | `libraries/carrier.kicad_sym` | F_ESP, SN74AHCT125N, SJ_SERVO |
 | `libraries/carrier.pretty/` | Placeholder footprints |
 
