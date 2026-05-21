@@ -17,7 +17,7 @@
 - `F_ESP` placeholder (gebruikte GPIO’s uit pinout-tabel)
 - `U2` SN74AHCT125N — alle **~OE → GND**
 - **4×** LED-keten: GPIO → AHCT → 330Ω → `J_LED1`…`J_LED4` (`LED4` = GPIO12)
-- `J_LD2450` (GPIO10/11), `J_OLED_EXT`, `J_I2C`, servo's, knoppen, encoder, `J_GPIO`
+- `J_LD2450` (GPIO10/11), `J_OLED_EXT`, `J_I2C`, servo's, knoppen, encoder, `J_LED4`, `J_W5500` (optional, not populated)
 
 ### PCB (layout placeholder)
 

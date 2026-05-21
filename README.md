@@ -2,8 +2,8 @@
 
 Doel: een soldeerbare carrier-PCB voor een ESP32-S3 DevKit, bedoeld voor kleine interactieve installaties met LED-data, servo's, HLK-LD2450 mmWave sensor, SH1106 OLED-display, knoppen en rotary encoder.
 
-**Documentatieversie:** 0.9.2 (voorbereiding)  
-**Status:** KiCad placeholder project aangemaakt · **nog niet productieklaar** · **geen Gerbers** · ESP32-footprint blijft **NIET DEFINITIEF** (meting later · [diymore B0F3XMYYQY](https://www.amazon.nl/-/en/diymore-DevKitC-1-S3-1-N16R8-development-connectable/dp/B0F3XMYYQY))
+**Documentatieversie:** 0.2 (placeholder)  
+**Status:** KiCad placeholder v0.2 · **nog niet productieklaar** · **geen Gerbers** · ESP32-footprint blijft **NIET DEFINITIEF** (meting later · [diymore B0F3XMYYQY](https://www.amazon.nl/-/en/diymore-DevKitC-1-S3-1-N16R8-development-connectable/dp/B0F3XMYYQY))
 
 ## Documentatie-index
 
@@ -23,15 +23,17 @@ Doel: een soldeerbare carrier-PCB voor een ESP32-S3 DevKit, bedoeld voor kleine 
 | [hardware/measurements.md](hardware/measurements.md) | **Werkplaats meetformulier** |
 | [docs/pcb-briefing.md](docs/pcb-briefing.md) | Oorspronkelijke briefing (archief) |
 
-## Belangrijkste ontwerpkeuzes (v0.9)
+## Belangrijkste ontwerpkeuzes (v0.2)
 
 - ESP32-S3 DevKit blijft los module met eigen USB-C.
 - Eén **5V MAIN IN** — primair **JST-VH** of schroefklem; JST-XH alleen secundair met stroomlimiet.
 - Interne rails: `5V_LOGIC`, `5V_LED`, `5V_SERVO` (via **SJ_SERVO** vanaf MAIN).
-- LED-data: ESP32 GPIO → **SN74AHCT125N** → 330 Ω → JST-XH 3p (`5V | GND | DATA`).
+- LED-data: **4×** ESP32 GPIO → **SN74AHCT125N** (4 kanalen) → 330 Ω → JST-XH 3p — **3 actief** (GPIO18/17/21) + **1 AUX** (GPIO12).
 - Alle AHCT **~OE** (pins 1, 4, 10, 13) → GND.
 - LD2450: UART op **GPIO10/11**, niet op UART0 (43/44).
 - I2C OLED: **GPIO8/9**.
+- **Optionele W5500** header **J_W5500** (8p): 3V3, GND, SPI + CS/RST/INT op **GPIO5/13/14/47/4/39** — **NOT POPULATED**, voor toekomstige bedrade Ethernet/Art-Net route.
+- Pinout conflict-check: zie [hardware/pinout-table.md](hardware/pinout-table.md).
 - Connectorfamilie signaal: **JST-XH 2,54 mm** through-hole waar mogelijk.
 
 ## Werkwijze

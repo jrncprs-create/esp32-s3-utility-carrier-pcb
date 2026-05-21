@@ -1,6 +1,6 @@
 # Technische specificatie — ESP32-S3 Utility Carrier PCB v1
 
-Versie: **0.9 (voorbereiding)**  
+Versie: **0.2 (placeholder)**  
 Datum: 2026-05-21  
 Status: **GEEN productie-PCB** · **GEEN Gerbers** · ESP32-footprint **VOORLOPIG** (Espressif-ref = diymore B0F3XMYYQY; [meting later](../hardware/measurements.md))
 
@@ -103,13 +103,13 @@ Soldeerbare **carrier-PCB** voor een **ESP32-S3 DevKit** (plug-in via twee pin-h
 
 ## 3. Functionele blokken
 
-### 3.1 LED / data (×3)
+### 3.1 LED / data (×4: 3 actief + 1 AUX)
 
 - **U2:** SN74AHCT125N (DIP-14), VCC = 5V, GND common.
 - **~OE1–4:** pins **1, 4, 10, 13** → **GND** (outputs altijd enabled).
 - Signaalpad: `ESP32 GPIO` → `AHCT Ax` → `AHCT Yx` → `Rx 330 Ω` → `J_LEDx DATA`.
-- **Standaard GPIO:** OUT1=**18**, OUT2=**17**, OUT3=**21** (zie pinout-tabel).
-- Kanaal 4 van AHCT125: **NC** of testpad (geen connector v1).
+- **GPIO:** OUT1=**18**, OUT2=**17**, OUT3=**21** (3× actieve buizen), OUT4/AUX=**12** (reserve).
+- Alle vier kanalen naar **J_LED1..J_LED4** (JST-XH 3p).
 
 ### 3.2 Servo (×2)
 
@@ -141,11 +141,18 @@ Soldeerbare **carrier-PCB** voor een **ESP32-S3 DevKit** (plug-in via twee pin-h
 - GPIO: **CLK=6**, **DT=7**, **SW=40**.
 - Pull-ups: firmware internal; optionele **10 kΩ** footprints naar 3V3 (DNP default).
 
-### 3.7 Extra
+### 3.7 Optionele W5500 Ethernet (NOT POPULATED)
+
+- **J_W5500** 8-pin JST-XH placeholder: **3V3 | GND | SPI_SCK | SPI_MOSI | SPI_MISO | ETH_CS | ETH_RST | ETH_INT**.
+- **GPIO (v0.2):** SCK=**5**, MOSI=**13**, MISO=**14**, CS=**47**, RST=**4**, INT=**39**.
+- Bedoeld voor **bedrade** W5500-module (geen SMD PHY op carrier v0.2).
+- Silk/value: **W5500 OPTIONAL / NOT POPULATED** — geen module in BOM.
+- Firmware: SPI host (bijv. SPI2); geen conflict met LED/LD2450/I2C/encoder/servo (zie pinout-tabel).
+
+### 3.8 Overig
 
 - **J_I2C** 4-pin (dup van OLED bus).
-- **J_GPIO** 8-pin: GND, 3V3, 5V, GPIO12, 13, 14, 47, **NC/reserve**.
-- **Proto:** min. 6×7 gaten 2,54 mm, geen copper pour in vak (user freedom).
+- **Proto:** min. 6×7 gaten 2,54 mm (layoutplan).
 - **4× montagegat** M3 (3,2 mm drill) in hoeken.
 
 ---
@@ -160,13 +167,13 @@ Soldeerbare **carrier-PCB** voor een **ESP32-S3 DevKit** (plug-in via twee pin-h
 | Onboard RGB (DevKit v1.1) | 38 | **Niet gebruiken** |
 | Strapping | 0, 3, 45, 46 | **Niet gebruiken** |
 | DevKit LED (typ.) | 48 | **Niet gebruiken** |
-| LED data | 18, 17, 21 | Gebruikt |
+| LED data | 18, 17, 21, 12 | Gebruikt (12 = AUX) |
 | I2C | 8, 9 | Gebruikt |
 | Servo PWM | 15, 16 | Gebruikt |
 | LD2450 UART | 10, 11 | Gebruikt |
 | Knoppen | 1, 2, 42 | Gebruikt |
 | Encoder | 6, 7, 40 | Gebruikt |
-| Extra | 12, 13, 14, 47 | Header |
+| W5500 SPI (optioneel) | 5, 13, 14, 47, 4, 39 | J_W5500 — niet gemonteerd |
 
 Volledige tabel: `hardware/pinout-table.md`.
 

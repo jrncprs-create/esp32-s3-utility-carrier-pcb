@@ -177,6 +177,6 @@
   ],
   "text_variables": {
     "PROJECT": "ESP32-S3 Utility Carrier v1",
-    "STATUS": "PLACEHOLDER - NOT FOR PRODUCTION"
+    "STATUS": "v0.2 PLACEHOLDER - NOT FOR PRODUCTION"
   }
 }

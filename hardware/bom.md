@@ -38,7 +38,8 @@
 | SW3 | Tact switch | 6×6 mm | `SW_PUSH_6mm` | Optioneel | BTN3 |
 | ENC1 | Rotary encoder | EC11 20 mm, detents | `RotaryEncoder_EC11` | Optioneel | On-board |
 | J_ENC | Connector | JST-XH 5p | `JST_XH_1x05` | Optioneel | Externe encoder |
-| J_GPIO | Connector | JST-XH 8p | `JST_XH_1x08` | Optioneel | Extra GPIO |
+| J_W5500 | Connector | JST-XH 8p | `JST_W5500_1x08` | Optioneel | W5500 Ethernet — **NOT POPULATED** |
+| J_LED4 | Connector | JST-XH 3p | `JST_XH_1x03` | Aanbevolen | LED AUX / reserve (GPIO12) |
 | R_ENC1–3 | Pull-up | 10 kΩ | Axial 0,4 | Optioneel | DNP; firmware pull-up default |
 | — | PCB | 2-layer FR4 1,6 mm | — | **Ja** | 1 oz; pour GND |
 | — | Montage | M3 standoff + schroef | 3,2 mm hole | Optioneel | 4 hoeken |

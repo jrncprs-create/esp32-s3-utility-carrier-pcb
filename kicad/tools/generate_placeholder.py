@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate KiCad placeholder project for ESP32-S3 Utility Carrier v1."""
+"""Generate KiCad placeholder project for ESP32-S3 Utility Carrier."""
 from __future__ import annotations
 
 import json
@@ -11,6 +11,35 @@ ROOT = Path(__file__).resolve().parents[1]
 LIBS = ROOT / "libraries"
 PRETTY = LIBS / "carrier.pretty"
 PROJECT = "esp32-s3-utility-carrier"
+DOC_REV = "0.2-placeholder"
+
+# Canonical GPIO map (ESP32-S3 N16R8 / DevKitC-1) — single source for docs + KiCad labels.
+PINOUT: dict[str, int] = {
+    "LED1": 18,
+    "LED2": 17,
+    "LED3": 21,
+    "LED4": 12,
+    "I2C_SDA": 8,
+    "I2C_SCL": 9,
+    "LD_ESP_RX": 10,
+    "LD_ESP_TX": 11,
+    "SERVO1_PWM": 15,
+    "SERVO2_PWM": 16,
+    "BTN1": 1,
+    "BTN2": 2,
+    "BTN3": 42,
+    "ENC_CLK": 6,
+    "ENC_DT": 7,
+    "ENC_SW": 40,
+    "SPI_SCK": 5,
+    "SPI_MOSI": 13,
+    "SPI_MISO": 14,
+    "ETH_CS": 47,
+    "ETH_RST": 4,
+    "ETH_INT": 39,
+}
+
+FORBIDDEN_GPIO = frozenset({0, 3, 19, 20, 35, 36, 37, 38, 43, 44, 45, 46, 48})
 
 
 def uid() -> str:
@@ -133,14 +162,20 @@ def write_carrier_sym() -> None:
       (pin bidirectional line (at 17.78 22.86) (length 2.54) (name "GPIO1" (effects (font (size 1.016 1.016)))) (number "1" (effects (font (size 1.016 1.016)))))
       (pin bidirectional line (at 17.78 20.32) (length 2.54) (name "GPIO2" (effects (font (size 1.016 1.016)))) (number "2" (effects (font (size 1.016 1.016)))))
       (pin bidirectional line (at 17.78 17.78) (length 2.54) (name "GPIO42" (effects (font (size 1.016 1.016)))) (number "42" (effects (font (size 1.016 1.016)))))
-      (pin power_in line (at 17.78 12.7) (length 2.54) (name "5V" (effects (font (size 1.016 1.016)))) (number "5V" (effects (font (size 1.016 1.016)))))
-      (pin power_in line (at 17.78 10.16) (length 2.54) (name "5V2" (effects (font (size 1.016 1.016)))) (number "5V2" (effects (font (size 1.016 1.016)))))
-      (pin power_in line (at 17.78 7.62) (length 2.54) (name "3V3" (effects (font (size 1.016 1.016)))) (number "3V3" (effects (font (size 1.016 1.016)))))
-      (pin power_in line (at 17.78 5.08) (length 2.54) (name "3V32" (effects (font (size 1.016 1.016)))) (number "3V32" (effects (font (size 1.016 1.016)))))
-      (pin power_in line (at 17.78 0) (length 2.54) (name "GND" (effects (font (size 1.016 1.016)))) (number "GND" (effects (font (size 1.016 1.016)))))
-      (pin power_in line (at 17.78 -2.54) (length 2.54) (name "GND2" (effects (font (size 1.016 1.016)))) (number "GND2" (effects (font (size 1.016 1.016)))))
-      (pin power_in line (at 17.78 -5.08) (length 2.54) (name "GND3" (effects (font (size 1.016 1.016)))) (number "GND3" (effects (font (size 1.016 1.016)))))
-      (pin power_in line (at 17.78 -7.62) (length 2.54) (name "GND4" (effects (font (size 1.016 1.016)))) (number "GND4" (effects (font (size 1.016 1.016)))))
+      (pin bidirectional line (at 17.78 15.24) (length 2.54) (name "GPIO4" (effects (font (size 1.016 1.016)))) (number "4" (effects (font (size 1.016 1.016)))))
+      (pin bidirectional line (at 17.78 12.7) (length 2.54) (name "GPIO5" (effects (font (size 1.016 1.016)))) (number "5" (effects (font (size 1.016 1.016)))))
+      (pin bidirectional line (at 17.78 10.16) (length 2.54) (name "GPIO13" (effects (font (size 1.016 1.016)))) (number "13" (effects (font (size 1.016 1.016)))))
+      (pin bidirectional line (at 17.78 7.62) (length 2.54) (name "GPIO14" (effects (font (size 1.016 1.016)))) (number "14" (effects (font (size 1.016 1.016)))))
+      (pin bidirectional line (at 17.78 5.08) (length 2.54) (name "GPIO47" (effects (font (size 1.016 1.016)))) (number "47" (effects (font (size 1.016 1.016)))))
+      (pin bidirectional line (at 17.78 2.54) (length 2.54) (name "GPIO39" (effects (font (size 1.016 1.016)))) (number "39" (effects (font (size 1.016 1.016)))))
+      (pin power_in line (at 17.78 0) (length 2.54) (name "5V" (effects (font (size 1.016 1.016)))) (number "5V" (effects (font (size 1.016 1.016)))))
+      (pin power_in line (at 17.78 -2.54) (length 2.54) (name "5V2" (effects (font (size 1.016 1.016)))) (number "5V2" (effects (font (size 1.016 1.016)))))
+      (pin power_in line (at 17.78 -5.08) (length 2.54) (name "3V3" (effects (font (size 1.016 1.016)))) (number "3V3" (effects (font (size 1.016 1.016)))))
+      (pin power_in line (at 17.78 -7.62) (length 2.54) (name "3V32" (effects (font (size 1.016 1.016)))) (number "3V32" (effects (font (size 1.016 1.016)))))
+      (pin power_in line (at 17.78 -10.16) (length 2.54) (name "GND" (effects (font (size 1.016 1.016)))) (number "GND" (effects (font (size 1.016 1.016)))))
+      (pin power_in line (at 17.78 -12.7) (length 2.54) (name "GND2" (effects (font (size 1.016 1.016)))) (number "GND2" (effects (font (size 1.016 1.016)))))
+      (pin power_in line (at 17.78 -15.24) (length 2.54) (name "GND3" (effects (font (size 1.016 1.016)))) (number "GND3" (effects (font (size 1.016 1.016)))))
+      (pin power_in line (at 17.78 -17.78) (length 2.54) (name "GND4" (effects (font (size 1.016 1.016)))) (number "GND4" (effects (font (size 1.016 1.016)))))
     )
   )
   (symbol "SJ_SERVO"
@@ -235,6 +270,29 @@ def write_footprints() -> None:
   (pad "1" thru_hole rect (at 0 0) (size 1.8 1.8) (drill 1.1) (layers "*.Cu" "*.Mask"))
   (pad "2" thru_hole oval (at 2.5 0) (size 1.8 1.8) (drill 1.1) (layers "*.Cu" "*.Mask"))
   (pad "3" thru_hole oval (at 5.0 0) (size 1.8 1.8) (drill 1.1) (layers "*.Cu" "*.Mask"))
+""",
+    )
+
+    fp(
+        "JST_W5500_1x08_Placeholder",
+        """
+  (descr "W5500 module 8p - OPTIONAL NOT POPULATED")
+  (tags "W5500 Ethernet")
+  (attr through_hole)
+  (fp_text reference "J_W5500" (at 8.75 -4) (layer "F.SilkS"))
+  (fp_text value "W5500_OPT_NP" (at 8.75 4) (layer "F.Fab") hide)
+  (fp_text user "W5500 OPTIONAL" (at 8.75 -2.5) (layer "F.SilkS")
+    (effects (font (size 0.8 0.8) (thickness 0.12))))
+  (fp_text user "NOT POPULATED" (at 8.75 2.5) (layer "F.SilkS")
+    (effects (font (size 0.7 0.7) (thickness 0.1))))
+  (pad "1" thru_hole rect (at 0 0) (size 1.8 1.8) (drill 1.1) (layers "*.Cu" "*.Mask"))
+  (pad "2" thru_hole oval (at 2.5 0) (size 1.8 1.8) (drill 1.1) (layers "*.Cu" "*.Mask"))
+  (pad "3" thru_hole oval (at 5.0 0) (size 1.8 1.8) (drill 1.1) (layers "*.Cu" "*.Mask"))
+  (pad "4" thru_hole oval (at 7.5 0) (size 1.8 1.8) (drill 1.1) (layers "*.Cu" "*.Mask"))
+  (pad "5" thru_hole oval (at 10.0 0) (size 1.8 1.8) (drill 1.1) (layers "*.Cu" "*.Mask"))
+  (pad "6" thru_hole oval (at 12.5 0) (size 1.8 1.8) (drill 1.1) (layers "*.Cu" "*.Mask"))
+  (pad "7" thru_hole oval (at 15.0 0) (size 1.8 1.8) (drill 1.1) (layers "*.Cu" "*.Mask"))
+  (pad "8" thru_hole oval (at 17.5 0) (size 1.8 1.8) (drill 1.1) (layers "*.Cu" "*.Mask"))
 """,
     )
 
@@ -408,7 +466,7 @@ def write_project() -> None:
         "sheets": [["root", f"{PROJECT}.kicad_sch"]],
         "text_variables": {
             "PROJECT": "ESP32-S3 Utility Carrier v1",
-            "STATUS": "PLACEHOLDER - NOT FOR PRODUCTION",
+            "STATUS": "v0.2 PLACEHOLDER - NOT FOR PRODUCTION",
         },
     }
     (ROOT / f"{PROJECT}.kicad_pro").write_text(json.dumps(pro, indent=2) + "\n", encoding="utf-8")
@@ -493,7 +551,7 @@ class SchBuilder:
   (title_block
     (title "ESP32-S3 Utility Carrier v1")
     (date "2026-05-21")
-    (rev "placeholder")
+    (rev "{DOC_REV}")
     (comment 1 "NOT FOR PRODUCTION - ESP footprint NOT FINAL")
     (comment 2 "See hardware/measurements.md before ordering PCB")
   )
@@ -658,6 +716,12 @@ def write_schematic() -> None:
         ("ENC_CLK", ex + 22, ey - 6),
         ("ENC_DT", ex + 22, ey - 3),
         ("ENC_SW", ex + 22, ey),
+        ("SPI_SCK", ex + 22, ey + 3),
+        ("SPI_MOSI", ex + 22, ey + 6),
+        ("SPI_MISO", ex + 22, ey + 9),
+        ("ETH_CS", ex + 22, ey + 12),
+        ("ETH_RST", ex + 22, ey + 15),
+        ("ETH_INT", ex + 22, ey + 18),
     ]
     for name, gx, gy in gpio_map:
         b.glabel(name, gx, gy, 0 if gx > ex else 180)
@@ -743,12 +807,38 @@ def write_schematic() -> None:
     b.glabel("ENC_DT", 40, 166, 180)
     b.glabel("ENC_SW", 40, 169, 180)
 
-    # --- Extra GPIO ---
-    b.sym("Connector:Conn_01x08_Pin", "J_GPIO", "GPIO_EXTRA", 320, 90, "carrier:JST_XH_1x08_Placeholder")
+    # --- W5500 optional Ethernet module (NOT POPULATED) ---
+    wx, wy = 300, 55
+    b.sym(
+        "Connector:Conn_01x08_Pin",
+        "J_W5500",
+        "W5500_OPTIONAL_NP",
+        wx,
+        wy,
+        "carrier:JST_W5500_1x08_Placeholder",
+    )
+    w5500_pins = [
+        ("3V3", 0),
+        ("GND", 2.54),
+        ("SPI_SCK", 5.08),
+        ("SPI_MOSI", 7.62),
+        ("SPI_MISO", 10.16),
+        ("ETH_CS", 12.7),
+        ("ETH_RST", 15.24),
+        ("ETH_INT", 17.78),
+    ]
+    for net, dy in w5500_pins:
+        b.glabel(net, wx - 12, wy + dy, 180)
+    b.items.append(
+        f'  (text "W5500 OPTIONAL / NOT POPULATED\\n'
+        f"Bedrade module voor toekomstige Art-Net/sACN route\\n"
+        f"SPI: GPIO5/13/14 CS47 RST4 INT39 (zie pinout-table.md)\\n"
+        f"    (at {wx - 5} {wy - 12} 0) (effects (font (size 1.2 1.2)) (justify left)) (uuid {uid()}))\n"
+    )
 
     # Notes
     b.items.append(
-        f'  (text "PLACEHOLDER SCHEMATIC - run ERC in KiCad\\n'
+        f'  (text "PLACEHOLDER SCHEMATIC v0.2 - run ERC in KiCad\\n'
         f"ESP32 footprint NOT FINAL - see measurements.md\\n"
         f'Do NOT order PCB / no Gerbers"\n'
         f"    (at 30 30 0) (effects (font (size 1.5 1.5)) (justify left)) (uuid {uid()}))\n"
@@ -786,6 +876,12 @@ def write_pcb() -> None:
         "ENC_CLK",
         "ENC_DT",
         "ENC_SW",
+        "SPI_SCK",
+        "SPI_MOSI",
+        "SPI_MISO",
+        "ETH_CS",
+        "ETH_RST",
+        "ETH_INT",
     ]
     net_lines = []
     for i, n in enumerate(nets):
@@ -819,8 +915,10 @@ def write_pcb() -> None:
   (gr_rect (start 30 50) (end 60 63) (stroke (width 0.2) (type dash)) (fill none) (layer "Dwgs.User") (tstamp 0))
   (gr_text "ANTENNA KEEP-OUT" (at 45 64 0) (layer "Dwgs.User") (tstamp 0)
     (effects (font (size 0.9 0.9) (thickness 0.12))))
-  (gr_text "ESP32-S3 Utility Carrier v1 PLACEHOLDER" (at 45 2 0) (layer "F.SilkS") (tstamp 0)
+  (gr_text "ESP32-S3 Utility Carrier v0.2 PLACEHOLDER" (at 45 2 0) (layer "F.SilkS") (tstamp 0)
     (effects (font (size 1.2 1.2) (thickness 0.15))))
+  (gr_text "J_W5500: W5500 OPTIONAL / NOT POPULATED" (at 5 62 0) (layer "F.SilkS") (tstamp 0)
+    (effects (font (size 0.8 0.8) (thickness 0.1))))
 """
     )
 
@@ -851,7 +949,7 @@ def write_pcb() -> None:
         ("SW3", "BTN3", "Button_Switch_THT:SW_PUSH_6mm", 86, 45),
         ("J_BTN", "BTN_EXT", "carrier:JST_XH_1x04_Placeholder", 70, 55),
         ("J_ENC", "ENC", "carrier:JST_XH_1x05_Placeholder", 82, 55),
-        ("J_GPIO", "GPIO", "carrier:JST_XH_1x08_Placeholder", 70, 62),
+        ("J_W5500", "W5500_OPT_NP", "carrier:JST_W5500_1x08_Placeholder", 5, 62),
     ]
     for ref, val, libfp, x, y in placements:
         items.append(fp(ref, val, libfp, x, y))
@@ -992,7 +1090,17 @@ def verify_pin_orientations() -> None:
             raise RuntimeError(f"{path}: {len(hits)} pin(s) missing orientation")
 
 
+def verify_pinout() -> None:
+    used = set(PINOUT.values())
+    overlap = used & FORBIDDEN_GPIO
+    if overlap:
+        raise RuntimeError(f"PINOUT uses forbidden GPIO: {sorted(overlap)}")
+    if len(used) != len(PINOUT):
+        raise RuntimeError("PINOUT has duplicate GPIO assignments")
+
+
 def main() -> None:
+    verify_pinout()
     LIBS.mkdir(parents=True, exist_ok=True)
     write_carrier_sym()
     write_footprints()
@@ -1003,6 +1111,9 @@ def main() -> None:
     write_readme_kicad()
     verify_pin_orientations()
     verify_schematic_layout(ROOT / f"{PROJECT}.kicad_sch")
+    text = (ROOT / f"{PROJECT}.kicad_pcb").read_text(encoding="utf-8")
+    if "(justify center)" in text:
+        raise RuntimeError("PCB still contains invalid (justify center)")
     print(f"Generated KiCad placeholder in {ROOT}")
 
 
