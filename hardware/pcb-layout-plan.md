@@ -10,7 +10,7 @@ KiCad-origin = **linksonder**; hoge Y = bovenkant board. Plaatsing = `PCB_PLACE`
 ## Visueel beleid
 
 - Geen zone-kaders / GND-pour op F.Cu.
-- **Copper (placeholder):** 3× LED-data (0,25 mm), J_MAIN→C_MAIN, korte 5V naar U2 + 5V_LED naar J_LED1–3; **geen** board-wide GND-bussen.
+- **Copper (placeholder):** 3× LED-data (0,25 mm), J_MAIN→C_MAIN, C_MAIN→U2 + C_AHCT lokaal; **5V_LED** en GND naar LED-terminals ratsnest; **geen** board-wide GND/5V-bussen.
 - Dwgs.User: ESP **25,4×52,5 mm** outline, USB/ANT keep-outs, W5500 **23×29 mm** module + header keep-out.
 - Sensor/UI/servo/W5500-signalen: ratsnest.
 

@@ -3,7 +3,7 @@
 Doel: een soldeerbare carrier-PCB voor een ESP32-S3 DevKit, bedoeld voor kleine interactieve installaties met LED-data, servo's, HLK-LD2450 mmWave sensor, SH1106 OLED-display, knoppen en rotary encoder.
 
 **Documentatieversie:** 0.9 phase 2  
-**Status:** KiCad placeholder v0.9 · **3× LED + limited power routing** · **nog niet productieklaar** · **geen Gerbers** · DevKitC-1 **25,4×52,5 mm assumed** — [verify clone](hardware/measurements.md)
+**Status:** KiCad placeholder v0.9.1 · **3× LED data + minimal local power** · **nog niet productieklaar** · **geen Gerbers** · DevKitC-1 **25,4×52,5 mm assumed** — [verify clone](hardware/measurements.md)
 
 ## Documentatie-index
 

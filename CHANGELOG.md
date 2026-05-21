@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [0.9.1] — 2026-05-21
+
+### Changed
+
+- Clean visible routing: **LED data only** plus short **J_MAIN→C_MAIN** and **U2↔C_AHCT**;
+  remove top-edge 5V bus and **5V_LED** distribution traces (LED power stays ratsnest).
+
 ## [0.9.0] — 2026-05-21 (phase 2)
 
 ### Changed

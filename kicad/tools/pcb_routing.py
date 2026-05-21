@@ -1,4 +1,4 @@
-"""Placeholder PCB routing for generate_placeholder.py (v0.9 phase 2)."""
+"""Placeholder PCB routing for generate_placeholder.py (v0.9+)."""
 from __future__ import annotations
 
 # Pad offsets (mm) from footprint anchor at (0,0).
@@ -48,8 +48,12 @@ PAD_OFFSETS: dict[str, dict[str, tuple[float, float]]] = {
 }
 
 TRACK_SIG = 0.25
-TRACK_PWR = 0.5
-TRACK_DECO = 0.35
+TRACK_PWR = 0.5  # J_MAIN ↔ C_MAIN only
+TRACK_DECO = 0.35  # U2 ↔ C_AHCT and C_MAIN → U2 feed
+
+# South channel below ESP body (y2 ≈ 65.5) — avoids top-edge power bus.
+PWR_FEED_X = 38.0
+PWR_SOUTH_Y = 67.0
 
 # ESP DevKitC-1 — pin rows 22.86 mm apart; board outline 25.4 × 52.5 mm (verify clone).
 ESP_X1, ESP_Y1 = 45.0, 13.0
@@ -130,7 +134,7 @@ def build_placeholder_routing(
     fpmap: dict[str, str],
     net_ids: dict[str, int],
 ) -> str:
-    """LED data (×3) + limited local power — no board-wide GND buses."""
+    """LED data (×3) + minimal local power — no top bus, no LED 5V/GND pours."""
 
     def p(ref: str, pad: str) -> tuple[float, float]:
         x, y = place[ref]
@@ -157,7 +161,7 @@ def build_placeholder_routing(
         raw.append((_path_esp_to_u2(esp, u_i), TRACK_SIG, net_in))
         raw.append(([u_o, r1, j3], TRACK_SIG, net_data))
 
-    # Main in → bulk cap (local only)
+    # Main in → bulk cap (direct, local only)
     j5 = p("J_MAIN", "1")
     jg = p("J_MAIN", "2")
     c5 = p("C_MAIN", "1")
@@ -165,23 +169,21 @@ def build_placeholder_routing(
     raw.append(([j5, c5], TRACK_PWR, "5V_MAIN"))
     raw.append(([jg, cg], TRACK_PWR, "GND"))
 
-    # Short 5V logic feed to U2 VCC (north bus y=10, clear of ESP)
     vcc = p("U2", "14")
-    pwr_bus_y = 10.0
-    raw.append(
-        ([c5, (c5[0], pwr_bus_y), (vcc[0] - 4, pwr_bus_y), (vcc[0] - 4, vcc[1]), vcc], TRACK_PWR, "5V_LOGIC")
-    )
-
-    # Optional short 5V_LED stubs to LED screw terminals (pin 1 = 5V)
-    led_bus_x = c5[0]
-    for jref in ("J_LED1", "J_LED2", "J_LED3"):
-        j1 = p(jref, "1")
-        raw.append(([(led_bus_x, pwr_bus_y), (j1[0], pwr_bus_y), j1], TRACK_PWR, "5V_LED"))
-
-    # C_AHCT decoupling — short local links at U2 only
     gnd = p("U2", "7")
     c_v = p("C_AHCT", "1")
     c_g = p("C_AHCT", "2")
+
+    # 5V logic: C_MAIN → U2 via west + south channel (no top-edge bus, no LED 5V pours)
+    raw.append(
+        (
+            [c5, (PWR_FEED_X, c5[1]), (PWR_FEED_X, PWR_SOUTH_Y), (vcc[0], PWR_SOUTH_Y), vcc],
+            TRACK_DECO,
+            "5V_LOGIC",
+        )
+    )
+
+    # C_AHCT decoupling — short local links at U2 only
     raw.append(([vcc, (vcc[0], c_v[1]), c_v], TRACK_DECO, "5V_LOGIC"))
     raw.append(([gnd, (gnd[0], c_g[1]), c_g], TRACK_DECO, "GND"))
 

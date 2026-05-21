@@ -12,7 +12,8 @@
 
 ### PCB copper (placeholder)
 
-- **Gerouteerd:** LED1–3 data; J_MAIN→C_MAIN; 5V_LOGIC→U2; 5V_LED→J_LED1–3; C_AHCT @ U2
+- **Gerouteerd:** LED1–3 data; J_MAIN→C_MAIN; C_MAIN→U2 (5V_LOGIC, zuidkanaal); C_AHCT @ U2
+- **Ratsnest:** 5V_LED/GND naar J_LED1–3, servo, sensor, UI, W5500
 - **Ratsnest:** servo, sensor, UI, W5500 signalen
 - Geen zone-pour, geen Gerbers
 
