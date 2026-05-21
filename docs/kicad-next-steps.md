@@ -1,12 +1,12 @@
 # KiCad — status en volgende stappen
 
-## Wat is nu gegenereerd (placeholder v0.3)
+## Wat is nu gegenereerd (placeholder v0.4)
 
 | Item | Locatie | Status |
 |---|---|---|
 | KiCad project | `kicad/esp32-s3-utility-carrier.kicad_pro` | Openbaar in repo |
 | Schematic | `kicad/esp32-s3-utility-carrier.kicad_sch` | Bruikbaar; ERC verwacht |
-| PCB | `kicad/esp32-s3-utility-carrier.kicad_pcb` | **100×70 mm**, zone-layout, visueel opgeschoond |
+| PCB | `kicad/esp32-s3-utility-carrier.kicad_pcb` | **110×75 mm**, layout reset, airwires only |
 | Symbolen | `kicad/libraries/carrier.kicad_sym` | F_ESP, SN74AHCT125N, SJ_SERVO |
 | Footprints | `kicad/libraries/carrier.pretty/` | JST, F_ESP, M3, W5500 |
 | Generator | `kicad/tools/generate_placeholder.py` | `python3 tools/generate_placeholder.py` |
@@ -16,13 +16,13 @@
 - Voeding, `F_ESP`, `U2` AHCT (4 LED-kanalen), servo's, LD2450, I2C/OLED, knoppen, encoder
 - `J_W5500` optional (NOT POPULATED)
 
-### PCB (v0.3 placeholder layout)
+### PCB (v0.4 placeholder layout)
 
-- Board **100 × 70 mm**, **5 mm** randmarge, **4× M3** (9 mm van hoek)
-- **Geen** signaal-routing — alleen GND zone + airwires
-- Zones met Dwgs.User kaders + leesbare F.SilkS labels (geen overlap)
-- `F_ESP`: 2×20 @ 22,86 mm — **NIET DEFINITIEF / MEASURE BEFORE FAB**
-- Connectors binnen outline; W5500 onderaan met ruimte
+- Board **110 × 75 mm**, **5 mm** marge, **4× M3** (~5 mm van hoek)
+- **Geen** copper tracks, **geen** GND pour — alleen airwires (ratsnest)
+- Geen grote keep-out vlakken; dunne ESP-outline + kleine USB/ANT hints
+- Kleine horizontale zone-labels; connectors gegroepeerd per functie
+- `F_ESP`: 2×20 @ 22,86 mm — **TBD / MEASURE BEFORE FAB**
 
 ### Bewust **niet** in repo
 

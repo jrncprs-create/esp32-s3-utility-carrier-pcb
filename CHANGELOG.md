@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-05-21
+
+### Changed
+
+- PCB layout **visual reset** (v0.4): board **110 × 75 mm**, cleaner placement, no zone flood
+  boxes, no GND pour, no placeholder tracks — airwires only.
+- Subtle ESP keep-outs (thin USB/ANT rectangles); small horizontal silk labels per zone.
+- M3 holes ~5 mm from corners; connectors grouped by function with more spacing.
+
 ## [0.3.0] — 2026-05-21
 
 ### Changed
