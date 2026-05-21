@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [0.7.0] — 2026-05-21
+
+### Changed
+
+- PCB layout v0.7: zones split (sensor/display linksonder, UI/buttons rechts van ESP,
+  servo links, LED-kolom strak, W5500 compact met 5 mm marge); `PCB_PLACE` / `PCB_SILK` in
+  `generate_placeholder.py`.
+- First **visible routing pass** (LED data, U2 power, main in, LED 5V/GND, servo power) via
+  `kicad/tools/pcb_routing.py` — sensor/UI/W5500 remain ratsnest.
+- ESP / W5500 footprints and outlines remain **TBD** (measure before fab).
+
 ## [0.6.0] — 2026-05-21
 
 ### Changed

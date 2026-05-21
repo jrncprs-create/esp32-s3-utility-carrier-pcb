@@ -1,20 +1,20 @@
 # KiCad — status en volgende stappen
 
-## Wat is nu gegenereerd (placeholder v0.6)
+## Wat is nu gegenereerd (placeholder v0.7)
 
 | Item | Locatie | Status |
 |---|---|---|
 | KiCad project | `kicad/esp32-s3-utility-carrier.kicad_pro` | Openbaar in repo |
 | Schematic | `kicad/esp32-s3-utility-carrier.kicad_sch` | Bruikbaar; ERC verwacht |
-| PCB | `kicad/esp32-s3-utility-carrier.kicad_pcb` | **130×85 mm**, explicit coords |
-| Generator | `kicad/tools/generate_placeholder.py` | `PCB_PLACE` / `PCB_SILK` + overlap check |
+| PCB | `kicad/esp32-s3-utility-carrier.kicad_pcb` | **130×85 mm**, placement + partial copper |
+| Generator | `kicad/tools/generate_placeholder.py` | `PCB_PLACE` + `pcb_routing.py` |
 
-### PCB (v0.6 — coordinate table)
+### PCB (v0.7)
 
-- Board **130 × 85 mm**; componenten op vaste mm-coördinaten (zie `hardware/pcb-layout-plan.md`)
-- Geen zone-flood; kleine F.SilkS labels; dunne ESP/W5500 Dwgs.User guides
-- **Geen** signaal-copper — airwires (ratsnest) only
-- **4× M3** in hoeken; `F_ESP` / W5500 footprint **TBD**
+- Zones: power, servo (links), ESP (TBD footprint), sensor/display, UI/buttons, LED, W5500 (TBD)
+- **Copper:** LED chain, U2 supply, main in, LED/servo power distribution
+- **Ratsnest OK:** sensor, OLED/I2C, UI buttons, W5500 (until module measured)
+- Geen zone-pour, geen Gerbers in repo
 
 ### Bewust **niet** in repo
 
@@ -22,19 +22,10 @@
 
 ---
 
-## Openen in KiCad
+## Volgende stappen (blokkades voor productie)
 
-1. Open **`kicad/esp32-s3-utility-carrier.kicad_pro`**
-2. PCB Editor → controleer plaatsing en 3D Viewer
-3. **Update PCB from Schematic** indien refs gewijzigd
-4. DRC: unrouted nets verwacht
-
----
-
-## Volgende stappen (echte v1)
-
-1. Metingen DevKit → `hardware/measurements.md`
-2. Definitief ESP-footprint
-3. Handmatige routing
-4. ERC/DRC + risico-checklist
+1. **Meet** ESP32-S3 DevKit → `hardware/measurements.md` → definitief `F_ESP` footprint
+2. **Meet** USR-ES1 / W5500 module → definitief `J_W5500` + RJ45 keep-out
+3. Handmatige routing afronden (sensor, UI, Ethernet)
+4. ERC/DRC + `docs/risk-checklist-pre-production.md`
 5. Pas daarna bestellen

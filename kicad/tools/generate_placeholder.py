@@ -7,13 +7,18 @@ import re
 import uuid
 from pathlib import Path
 
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from pcb_routing import build_visible_routing  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[1]
 LIBS = ROOT / "libraries"
 PRETTY = LIBS / "carrier.pretty"
 PROJECT = "esp32-s3-utility-carrier"
-DOC_REV = "0.6-placeholder"
+DOC_REV = "0.7-placeholder"
 
-# PCB placement v0.6 — explicit coordinates (mm, KiCad origin lower-left, Y up).
+# PCB placement v0.7 — approved layout plan (mm, KiCad origin lower-left, Y up).
 BOARD_W = 130.0
 BOARD_H = 85.0
 BOARD_MARGIN = 5.0
@@ -25,46 +30,47 @@ PCB_PLACE: dict[str, tuple[float, float]] = {
     "H2": (123, 7),
     "H3": (7, 78),
     "H4": (123, 78),
-    "J_MAIN": (8, 14),
+    "J_MAIN": (12, 18),
     "C_MAIN": (22, 14),
-    "F_ESP": (45, 13),  # table (42,13)+3 mm — 1 mm clearance vs J_I2C @ (36,58)
-    "U2": (78, 28),
-    "C_AHCT": (78, 50),
-    "R_LED1": (94, 18),
-    "J_LED1": (112, 18),
-    "R_LED2": (94, 30),
-    "J_LED2": (112, 30),
-    "R_LED3": (94, 42),
-    "J_LED3": (112, 42),
-    "R_LED4": (94, 54),
-    "J_LED4": (112, 54),
+    "SJ_SERVO": (10, 30),
+    "C_SERVO": (22, 28),
+    "J_SERVO2": (24, 38),
+    "J_SERVO1": (24, 48),
+    "F_ESP": (45, 13),
     "J_LD2450": (8, 58),
-    "J_OLED_EXT": (22, 58),
-    "J_I2C": (36, 58),
-    "J_BTN": (8, 68),
-    "SW1": (24, 68),
-    "SW2": (34, 68),
-    "SW3": (44, 68),
-    "J_ENC": (56, 68),
-    "SJ_SERVO": (70, 66),
-    "C_SERVO": (82, 64),
-    "J_SERVO1": (70, 74),
-    "J_SERVO2": (84, 74),
-    "J_W5500": (94, 70),
+    "J_OLED_EXT": (20, 58),
+    "J_I2C": (32, 58),
+    "J_BTN": (70, 48),
+    "SW1": (78, 55),
+    "SW2": (86, 55),
+    "SW3": (94, 55),
+    "J_ENC": (80, 63),
+    "U2": (74, 24),
+    "C_AHCT": (82, 46),
+    "R_LED1": (88, 14),
+    "J_LED1": (104, 14),
+    "R_LED2": (88, 24),
+    "J_LED2": (104, 24),
+    "R_LED3": (88, 34),
+    "J_LED3": (104, 34),
+    "R_LED4": (88, 44),
+    "J_LED4": (104, 44),
+    "J_W5500": (98, 67),
 }
 
-# User target coords where noted; silk nudged only to satisfy verify_no_overlap.
+W5500_MARGIN_MM = 5.0
+
 PCB_SILK: list[tuple[str, float, float, float]] = [
     ("POWER IN 5V", 15, 10, 0.5),
-    ("ESP FOOTPRINT TBD", 42, 64.5, 0.5),  # user (54,70) — clears J_ENC
-    ("MEASURE BEFORE FAB", 42, 66.2, 0.5),  # user (54,73)
-    ("LED OUTPUTS", 100, 12, 0.5),
-    ("LED1-3: 5 TUBES", 100, 14, 0.45),
-    ("LED4: AUX", 107, 60, 0.45),  # user (100,58) — clears R_LED4 @ (94,54)
-    ("SENSOR / OLED / UI", 26, 54, 0.5),
-    ("SERVO POWER", 78, 62, 0.5),
-    ("USR-ES1 / W5500 TBD", 103, 66, 0.45),
-    ("RJ45 TO EDGE", 116, 67, 0.45),  # user (116,74) — clears W5500 reserve keep-out
+    ("SERVO POWER", 17, 26, 0.5),
+    ("SENSOR / DISPLAY", 22, 52, 0.5),
+    ("UI / BUTTONS", 70, 42, 0.45),
+    ("LED OUTPUTS", 98, 10, 0.5),
+    ("LED4: AUX", 105, 47.5, 0.4),
+    ("ESP FOOTPRINT TBD", 38, 52, 0.4),
+    ("MEASURE BEFORE FAB", 38, 54, 0.4),
+    ("USR-ES1 / W5500 TBD", 102, 57, 0.38),
+    ("RJ45 TO EDGE", 108, 75.5, 0.38),
 ]
 
 PCB_ROTATE: dict[str, float] = {}
@@ -544,7 +550,7 @@ def write_project() -> None:
         "sheets": [["root", f"{PROJECT}.kicad_sch"]],
         "text_variables": {
             "PROJECT": "ESP32-S3 Utility Carrier v1",
-            "STATUS": "v0.6 PLACEHOLDER - NOT FOR PRODUCTION",
+            "STATUS": "v0.7 PLACEHOLDER - NOT FOR PRODUCTION",
         },
     }
     (ROOT / f"{PROJECT}.kicad_pro").write_text(json.dumps(pro, indent=2) + "\n", encoding="utf-8")
@@ -919,7 +925,7 @@ def write_schematic() -> None:
 
     # Notes
     b.items.append(
-        f'  (text "PLACEHOLDER SCHEMATIC v0.6 - run ERC in KiCad\\n'
+        f'  (text "PLACEHOLDER SCHEMATIC v0.7 - run ERC in KiCad\\n'
         f"ESP32 footprint NOT FINAL - see measurements.md\\n"
         f'Do NOT order PCB / no Gerbers"\n'
         f"    (at 30 30 0) (effects (font (size 1.5 1.5)) (justify left)) (uuid {uid()}))\n"
@@ -978,6 +984,20 @@ def _rects_overlap(a: tuple[float, float, float, float], b: tuple[float, float, 
     ax1, ay1, ax2, ay2 = a
     bx1, by1, bx2, by2 = b
     return not (ax2 + gap < bx1 or bx2 + gap < ax1 or ay2 + gap < by1 or by2 + gap < ay1)
+
+
+def verify_w5500_margin(
+    placements: list[tuple[str, str, str, float, float]],
+    margin: tuple[float, float, float, float],
+) -> None:
+    mx1, my1, mx2, my2 = margin
+    for ref, _val, libfp, x, y in placements:
+        if ref == "J_W5500":
+            continue
+        angle = PCB_ROTATE.get(ref, 0.0)
+        box = _component_bbox(libfp, x, y, angle)
+        if _rects_overlap(box, margin, gap=0.0):
+            raise RuntimeError(f"{ref}: inside W5500 margin keep-out")
 
 
 def verify_no_overlap(
@@ -1084,10 +1104,18 @@ def write_pcb() -> None:
     usb_y0, usb_y1 = esp_y, esp_y + 6.0
     ant_y0, ant_y1 = esp_y + esp_h - 6.0, esp_y + esp_h
     w5500_x, w5500_y = PCB_PLACE["J_W5500"]
+    w5500_w, w5500_h = FOOTPRINT_EXTENTS["carrier:JST_W5500_1x08_Placeholder"]
+    m = W5500_MARGIN_MM
+    w5500_margin = (
+        w5500_x - m,
+        w5500_y - m,
+        w5500_x + w5500_w + m,
+        w5500_y + w5500_h + m,
+    )
     keepouts = [
         (esp_x + 2, usb_y0, esp_x + esp_w - 2, usb_y1),
         (esp_x + 4, ant_y0, esp_x + esp_w - 4, ant_y1),
-        (w5500_x, w5500_y, w5500_x + 30.0, w5500_y + 16.0),
+        w5500_margin,
     ]
 
     items.append(
@@ -1098,7 +1126,7 @@ def write_pcb() -> None:
     (stroke (width 0.1) (type default)) (fill none) (layer "Dwgs.User") (tstamp 0))
   (gr_rect (start {esp_x + 4} {ant_y0}) (end {esp_x + esp_w - 4} {ant_y1})
     (stroke (width 0.1) (type dash)) (fill none) (layer "Dwgs.User") (tstamp 0))
-  (gr_rect (start {w5500_x} {w5500_y}) (end {w5500_x + 30} {w5500_y + 16})
+  (gr_rect (start {w5500_margin[0]} {w5500_margin[1]}) (end {w5500_margin[2]} {w5500_margin[3]})
     (stroke (width 0.1) (type dash)) (fill none) (layer "Dwgs.User") (tstamp 0))
 """
     )
@@ -1144,11 +1172,16 @@ def write_pcb() -> None:
         placements.append((ref, val, libfp, x, y))
 
     verify_pcb_layout(placements)
+    verify_w5500_margin(placements, w5500_margin)
     verify_no_overlap(placements, keepouts)
     for ref, val, libfp, x, y in placements:
         items.append(fp(ref, val, libfp, x, y, angle=PCB_ROTATE.get(ref, 0.0)))
 
-    # v0.6: airwires only — no copper tracks or pours
+    fpmap = {ref: libfp for ref, _val, libfp, _x, _y in placements}
+    net_ids = {name: i for i, name in enumerate(nets)}
+    items.append(
+        build_visible_routing(PCB_PLACE, PCB_ROTATE, fpmap, net_ids)
+    )
 
     pcb = f"""(kicad_pcb (version 20240108) (generator "generate_placeholder.py")
   (general (thickness 1.6) (legacy_teardrops no))
@@ -1239,7 +1272,7 @@ Open in KiCad:
 |---|---|
 | `esp32-s3-utility-carrier.kicad_pro` | Project root |
 | `esp32-s3-utility-carrier.kicad_sch` | Placeholder schematic |
-| `esp32-s3-utility-carrier.kicad_pcb` | Placeholder PCB (130×85 mm, explicit coords v0.6) |
+| `esp32-s3-utility-carrier.kicad_pcb` | Placeholder PCB (130×85 mm, v0.7 layout + routing pass) |
 | `libraries/carrier.kicad_sym` | F_ESP, SN74AHCT125N, SJ_SERVO |
 | `libraries/carrier.pretty/` | Placeholder footprints |
 
@@ -1295,10 +1328,10 @@ def main() -> None:
     text = (ROOT / f"{PROJECT}.kicad_pcb").read_text(encoding="utf-8")
     if "(justify center)" in text:
         raise RuntimeError("PCB still contains invalid (justify center)")
-    if re.search(r"\(segment\b", text):
-        raise RuntimeError("PCB must not contain copper segments (airwires only)")
     if re.search(r"\(zone\b", text):
         raise RuntimeError("PCB must not contain copper pour zones")
+    if not re.search(r"\(segment\b", text):
+        raise RuntimeError("PCB expected visible routing segments (v0.7)")
     print(f"Generated KiCad placeholder in {ROOT} ({BOARD_W}x{BOARD_H} mm)")
 
 
