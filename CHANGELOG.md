@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [0.5.0] — 2026-05-21
+
+### Changed
+
+- PCB layout aligned to **6-zone placement diagram** (130 × 85 mm).
+- Thin dashed Dwgs.User zone boxes (POWER, ESP, LED, SENSOR/UI, SERVO, W5500).
+- Components placed per zone; LED connectors on right edge (x≈120); W5500 bottom-right.
+- No copper tracks or GND pour — airwires only.
+
 ## [0.4.0] — 2026-05-21
 
 ### Changed

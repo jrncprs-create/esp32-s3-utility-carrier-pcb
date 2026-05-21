@@ -11,11 +11,11 @@ ROOT = Path(__file__).resolve().parents[1]
 LIBS = ROOT / "libraries"
 PRETTY = LIBS / "carrier.pretty"
 PROJECT = "esp32-s3-utility-carrier"
-DOC_REV = "0.4-placeholder"
+DOC_REV = "0.5-placeholder"
 
-# PCB placeholder layout v0.4 (mm). Origin = lower-left; outline 0..BOARD_W × 0..BOARD_H.
-BOARD_W = 110.0
-BOARD_H = 75.0
+# PCB zone layout v0.5 (mm) — matches docs/pcb-zone-layout.md diagram.
+BOARD_W = 130.0
+BOARD_H = 85.0
 BOARD_MARGIN = 5.0
 EDGE_CONNECTOR_MARGIN = 4.0  # J_LED* may sit closer to board edge
 M3_CENTER = 8.2  # hole center: ~5 mm from corner to hole edge (3.2 mm drill)
@@ -246,9 +246,9 @@ def write_footprints() -> None:
         '  (fp_text reference "F_ESP" (at 11.43 -4) (layer "F.SilkS")',
         '    (effects (font (size 1 1) (thickness 0.15))))',
         '  (fp_text value "F_ESP_2x20" (at 11.43 52) (layer "F.Fab") hide)',
-        '  (fp_text user "ESP32 FOOTPRINT NIET DEFINITIEF" (at 11.43 50) (layer "F.SilkS")',
+        '  (fp_text user "ESP FOOTPRINT TBD" (at 11.43 50) (layer "F.SilkS")',
         '    (effects (font (size 0.9 0.9) (thickness 0.15))))',
-        '  (fp_text user "NIET BESTELLEN ZONDER METINGEN" (at 11.43 47.5) (layer "F.SilkS")',
+        '  (fp_text user "MEASURE BEFORE FAB" (at 11.43 47.5) (layer "F.SilkS")',
         '    (effects (font (size 0.8 0.8) (thickness 0.12))))',
     ]
     for i in range(20):
@@ -499,7 +499,7 @@ def write_project() -> None:
         "sheets": [["root", f"{PROJECT}.kicad_sch"]],
         "text_variables": {
             "PROJECT": "ESP32-S3 Utility Carrier v1",
-            "STATUS": "v0.4 PLACEHOLDER - NOT FOR PRODUCTION",
+            "STATUS": "v0.5 PLACEHOLDER - NOT FOR PRODUCTION",
         },
     }
     (ROOT / f"{PROJECT}.kicad_pro").write_text(json.dumps(pro, indent=2) + "\n", encoding="utf-8")
@@ -874,7 +874,7 @@ def write_schematic() -> None:
 
     # Notes
     b.items.append(
-        f'  (text "PLACEHOLDER SCHEMATIC v0.4 - run ERC in KiCad\\n'
+        f'  (text "PLACEHOLDER SCHEMATIC v0.5 - run ERC in KiCad\\n'
         f"ESP32 footprint NOT FINAL - see measurements.md\\n"
         f'Do NOT order PCB / no Gerbers"\n'
         f"    (at 30 30 0) (effects (font (size 1.5 1.5)) (justify left)) (uuid {uid()}))\n"
@@ -887,6 +887,17 @@ def _pcb_gr_text(text: str, x: float, y: float, size: float = 0.8, layer: str = 
     return (
         f'  (gr_text "{text}" (at {x} {y} 0) (layer "{layer}") (tstamp 0)\n'
         f"    (effects (font (size {size} {size}) (thickness {max(size * 0.12, 0.1)}))))\n"
+    )
+
+
+def _pcb_zone_guide(x1: float, y1: float, x2: float, y2: float, label: str) -> str:
+    """Thin dashed zone box (Dwgs.User) — matches zone diagram."""
+    cx, ty = (x1 + x2) / 2, y2 - 1.2
+    return (
+        f"  (gr_rect (start {x1} {y1}) (end {x2} {y2})\n"
+        f'    (stroke (width 0.1) (type dash)) (fill none) (layer "Dwgs.User") (tstamp 0))\n'
+        f'  (gr_text "{label}" (at {cx} {ty} 0) (layer "Dwgs.User") (tstamp 0)\n'
+        f"    (effects (font (size 0.55 0.55) (thickness 0.08))))\n"
     )
 
 
@@ -972,10 +983,22 @@ def write_pcb() -> None:
 """
     )
 
-    esp_x, esp_y = 34.0, 16.0
+    # Zone guide boxes (v0.5 diagram)
+    zones = (
+        (10, 58, 48, 82, "1 POWER"),
+        (50, 12, 78, 68, "2 ESP32-S3 DEVKIT"),
+        (82, 48, 126, 82, "3 LED OUTPUTS"),
+        (10, 8, 52, 38, "4 SENSOR / OLED / UI"),
+        (10, 40, 48, 56, "5 SERVO POWER"),
+        (78, 8, 126, 32, "6 W5500 / ETHERNET"),
+    )
+    for x1, y1, x2, y2, lbl in zones:
+        items.append(_pcb_zone_guide(x1, y1, x2, y2, lbl))
+
+    esp_x, esp_y = 52.0, 14.0
     esp_w, esp_h = FOOTPRINT_EXTENTS["carrier:F_ESP_2x20_Placeholder"]
-    led_jx = 100.0
-    led_ys = (20.0, 32.0, 44.0, 56.0)
+    led_jx = 120.0
+    led_ys = (72.0, 64.0, 56.0, 48.0)
     m3 = (
         ("H1", M3_CENTER, M3_CENTER),
         ("H2", BOARD_W - M3_CENTER, M3_CENTER),
@@ -985,76 +1008,73 @@ def write_pcb() -> None:
     usb_y0, usb_y1 = esp_y, esp_y + 7.0
     ant_y0, ant_y1 = esp_y + esp_h - 7.0, esp_y + esp_h
 
-    # ESP: thin outline + small keep-outs only (no zone flood)
     items.append(
         f"""
   (gr_rect (start {esp_x} {esp_y}) (end {esp_x + esp_w} {esp_y + esp_h})
     (stroke (width 0.1) (type default)) (fill none) (layer "Dwgs.User") (tstamp 0))
   (gr_rect (start {esp_x + 2} {usb_y0}) (end {esp_x + esp_w - 2} {usb_y1})
     (stroke (width 0.1) (type default)) (fill none) (layer "Dwgs.User") (tstamp 0))
-  (gr_text "USB" (at {esp_x + esp_w / 2} {usb_y0 + 2} 0) (layer "Dwgs.User") (tstamp 0)
-    (effects (font (size 0.55 0.55) (thickness 0.08))))
+  (gr_text "USB edge" (at {esp_x + esp_w / 2} {usb_y0 + 1.5} 0) (layer "Dwgs.User") (tstamp 0)
+    (effects (font (size 0.5 0.5) (thickness 0.08))))
   (gr_rect (start {esp_x + 4} {ant_y0}) (end {esp_x + esp_w - 4} {ant_y1})
     (stroke (width 0.1) (type dash)) (fill none) (layer "Dwgs.User") (tstamp 0))
-  (gr_text "ANT" (at {esp_x + esp_w / 2} {ant_y1 - 2} 0) (layer "Dwgs.User") (tstamp 0)
-    (effects (font (size 0.55 0.55) (thickness 0.08))))
+  (gr_text "ANT keep-out" (at {esp_x + esp_w / 2} {ant_y1 - 1.5} 0) (layer "Dwgs.User") (tstamp 0)
+    (effects (font (size 0.5 0.5) (thickness 0.08))))
 """
     )
 
-    # Zone labels — small, horizontal, non-overlapping
-    items.append(_pcb_gr_text("ESP32-S3 Carrier v0.4 PLACEHOLDER", 55, 3.0, 0.7))
-    items.append(_pcb_gr_text("POWER IN 5V", 12, 9.0, 0.6))
-    items.append(_pcb_gr_text("LED OUTPUTS", 72, 14.0, 0.6))
-    items.append(_pcb_gr_text("LED1-3: 5 TUBES", 72, 15.4, 0.55))
-    items.append(_pcb_gr_text("LED4: AUX", 72, 52.0, 0.55))
-    items.append(_pcb_gr_text("SENSOR / OLED / UI", 12, 54.0, 0.6))
-    items.append(_pcb_gr_text("SERVO POWER", 44, 38.0, 0.6))
-    items.append(_pcb_gr_text("ESP FOOTPRINT TBD", esp_x, esp_y + esp_h + 1.2, 0.55))
-    items.append(_pcb_gr_text("MEASURE BEFORE FAB", esp_x, esp_y + esp_h + 2.4, 0.55))
-    items.append(_pcb_gr_text("W5500 OPTIONAL", 42, 16.0, 0.55))
-    items.append(_pcb_gr_text("ETHERNET / ART-NET", 42, 14.5, 0.5))
+    items.append(_pcb_gr_text("ESP32-S3 Utility Carrier v0.5", 65, 3.0, 0.7))
+    items.append(_pcb_gr_text("PLACEHOLDER - NOT FOR PRODUCTION", 65, 4.5, 0.55))
+    items.append(_pcb_gr_text("POWER IN 5V", 14, 76.0, 0.6))
+    items.append(_pcb_gr_text("LED1-3: 5 TUBES", 90, 76.0, 0.55))
+    items.append(_pcb_gr_text("LED4: AUX", 90, 46.0, 0.55))
+    items.append(_pcb_gr_text("LED conn. right edge", 98, 44.0, 0.5))
+    items.append(_pcb_gr_text("ESP FOOTPRINT TBD", esp_x, 12.0, 0.55))
+    items.append(_pcb_gr_text("MEASURE BEFORE FAB", esp_x, 10.5, 0.5))
+    items.append(_pcb_gr_text("W5500 OPTIONAL / NOT POP", 88, 28.0, 0.55))
+    items.append(_pcb_gr_text("ETHERNET / ART-NET", 88, 26.5, 0.5))
 
     placements = [
         *[(h, "M3", "carrier:M3_MountingHole", x, y) for h, x, y in m3],
-        # 1 Power — top-left
-        ("J_MAIN", "5V_MAIN_IN", "carrier:JST_VH_1x02_Placeholder", 12, 12),
-        ("C_MAIN", "1000uF", "Capacitor_THT:CP_Radial_D5.0mm_P2.50mm", 22, 12),
-        # 2 ESP — center-left / vertical middle
+        # Z1 POWER
+        ("J_MAIN", "5V_MAIN_IN", "carrier:JST_VH_1x02_Placeholder", 14, 72),
+        ("C_MAIN", "1000uF", "Capacitor_THT:CP_Radial_D5.0mm_P2.50mm", 26, 72),
+        # Z2 ESP
         ("F_ESP", "ESP32_2x20", "carrier:F_ESP_2x20_Placeholder", esp_x, esp_y),
-        # 3 LED — right column
-        ("U2", "SN74AHCT125N", "Package_DIP:DIP-14_W7.62mm", 72, 24),
-        ("C_AHCT", "100nF", "Capacitor_THT:C_Disc_D3mm_W2mm_Horizontal", 80, 42),
-        ("R_LED1", "330", "Resistor_THT:R_AXIAL-0.4_D5.1mm_L12.0mm_Horizontal", 86, led_ys[0]),
+        # Z3 LED (connectors on right edge)
+        ("U2", "SN74AHCT125N", "Package_DIP:DIP-14_W7.62mm", 88, 56),
+        ("C_AHCT", "100nF", "Capacitor_THT:C_Disc_D3mm_W2mm_Horizontal", 96, 52),
+        ("R_LED1", "330", "Resistor_THT:R_AXIAL-0.4_D5.1mm_L12.0mm_Horizontal", 106, led_ys[0]),
         ("J_LED1", "LED1", "carrier:JST_XH_1x03_Placeholder", led_jx, led_ys[0]),
-        ("R_LED2", "330", "Resistor_THT:R_AXIAL-0.4_D5.1mm_L12.0mm_Horizontal", 86, led_ys[1]),
+        ("R_LED2", "330", "Resistor_THT:R_AXIAL-0.4_D5.1mm_L12.0mm_Horizontal", 106, led_ys[1]),
         ("J_LED2", "LED2", "carrier:JST_XH_1x03_Placeholder", led_jx, led_ys[1]),
-        ("R_LED3", "330", "Resistor_THT:R_AXIAL-0.4_D5.1mm_L12.0mm_Horizontal", 86, led_ys[2]),
+        ("R_LED3", "330", "Resistor_THT:R_AXIAL-0.4_D5.1mm_L12.0mm_Horizontal", 106, led_ys[2]),
         ("J_LED3", "LED3", "carrier:JST_XH_1x03_Placeholder", led_jx, led_ys[2]),
-        ("R_LED4", "330", "Resistor_THT:R_AXIAL-0.4_D5.1mm_L12.0mm_Horizontal", 86, led_ys[3]),
+        ("R_LED4", "330", "Resistor_THT:R_AXIAL-0.4_D5.1mm_L12.0mm_Horizontal", 106, led_ys[3]),
         ("J_LED4", "LED4_AUX", "carrier:JST_XH_1x03_Placeholder", led_jx, led_ys[3]),
-        # 4 Sensor / UI — lower-left + bottom row
-        ("J_LD2450", "LD2450", "carrier:JST_XH_1x04_Placeholder", 12, 58),
-        ("J_OLED_EXT", "OLED", "carrier:JST_XH_1x04_Placeholder", 24, 58),
-        ("J_I2C", "I2C", "carrier:JST_XH_1x04_Placeholder", 36, 58),
-        ("F_OLED", "OLED_DIR", "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical", 24, 62),
-        ("SW1", "BTN1", "Button_Switch_THT:SW_PUSH_6mm", 48, 62),
-        ("SW2", "BTN2", "Button_Switch_THT:SW_PUSH_6mm", 58, 62),
-        ("SW3", "BTN3", "Button_Switch_THT:SW_PUSH_6mm", 68, 62),
-        ("J_BTN", "BTN_EXT", "carrier:JST_XH_1x04_Placeholder", 36, 62),
-        ("J_ENC", "ENC", "carrier:JST_XH_1x05_Placeholder", 78, 60),
-        # 5 Servo — mid-bottom (power parts with servos)
-        ("J_SERVO1", "SERVO1", "carrier:JST_XH_1x03_Placeholder", 44, 42),
-        ("J_SERVO2", "SERVO2", "carrier:JST_XH_1x03_Placeholder", 54, 42),
-        ("SJ_SERVO", "SJ_SERVO", "carrier:SolderJumper_2_Bridged", 44, 34),
-        ("C_SERVO", "2200uF", "Capacitor_THT:CP_Radial_D5.0mm_P2.50mm", 54, 34),
-        # 6 Ethernet — bottom center (spacious, not in corner)
-        ("J_W5500", "W5500_OPT_NP", "carrier:JST_W5500_1x08_Placeholder", 42, 10),
+        # Z4 SENSOR / UI
+        ("J_LD2450", "LD2450", "carrier:JST_XH_1x04_Placeholder", 14, 14),
+        ("J_OLED_EXT", "OLED", "carrier:JST_XH_1x04_Placeholder", 26, 14),
+        ("J_I2C", "I2C", "carrier:JST_XH_1x04_Placeholder", 38, 14),
+        ("F_OLED", "OLED_DIR", "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical", 26, 28),
+        ("SW1", "BTN1", "Button_Switch_THT:SW_PUSH_6mm", 14, 24),
+        ("SW2", "BTN2", "Button_Switch_THT:SW_PUSH_6mm", 24, 24),
+        ("SW3", "BTN3", "Button_Switch_THT:SW_PUSH_6mm", 34, 24),
+        ("J_BTN", "BTN_EXT", "carrier:JST_XH_1x04_Placeholder", 14, 30),
+        ("J_ENC", "ENC", "carrier:JST_XH_1x05_Placeholder", 40, 22),
+        # Z5 SERVO POWER
+        ("SJ_SERVO", "SJ_SERVO", "carrier:SolderJumper_2_Bridged", 14, 50),
+        ("C_SERVO", "2200uF", "Capacitor_THT:CP_Radial_D5.0mm_P2.50mm", 24, 50),
+        ("J_SERVO1", "SERVO1", "carrier:JST_XH_1x03_Placeholder", 14, 44),
+        ("J_SERVO2", "SERVO2", "carrier:JST_XH_1x03_Placeholder", 24, 44),
+        # Z6 W5500 (bottom-right, toward outside edge)
+        ("J_W5500", "W5500_OPT_NP", "carrier:JST_W5500_1x08_Placeholder", 88, 12),
     ]
     verify_pcb_layout(placements)
     for ref, val, libfp, x, y in placements:
         items.append(fp(ref, val, libfp, x, y))
 
-    # v0.4: no copper pours, no placeholder tracks — airwires only in KiCad
+    # v0.5: airwires only — no copper tracks or pours
 
     pcb = f"""(kicad_pcb (version 20240108) (generator "generate_placeholder.py")
   (general (thickness 1.6) (legacy_teardrops no))
