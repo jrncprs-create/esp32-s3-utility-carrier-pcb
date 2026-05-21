@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import uuid
 from pathlib import Path
 
@@ -18,6 +19,37 @@ def uid() -> str:
 
 def s(*parts: str) -> str:
     return "\n".join(parts)
+
+
+def pin_orientation(x: float, y: float) -> int:
+    """KiCad pin graphic orientation in degrees (0=right, 90=up, 180=left, 270=down)."""
+    if x <= -5.0:
+        return 180
+    if x >= 5.0:
+        return 0
+    if y > 0:
+        return 90
+    if y < 0:
+        return 270
+    return 0
+
+
+def pin_at(x: float, y: float) -> str:
+    return f"(at {x} {y} {pin_orientation(x, y)})"
+
+
+# Match (at X Y) on pin lines only — not (at X Y Z) already complete.
+_PIN_AT_TWO_RE = re.compile(
+    r"(\(pin [^\n]*?)\(at (-?[0-9.]+) (-?[0-9.]+)\)(?! *-?[0-9.])( \(length)"
+)
+
+
+def fix_pin_orientations(text: str) -> str:
+    def repl(m: re.Match[str]) -> str:
+        x, y = float(m.group(2)), float(m.group(3))
+        return f"{m.group(1)}{pin_at(x, y)}{m.group(4)}"
+
+    return _PIN_AT_TWO_RE.sub(repl, text)
 
 
 # --- Custom symbol library ---
@@ -133,7 +165,7 @@ def write_carrier_sym() -> None:
   )
 )
 """
-    (LIBS / "carrier.kicad_sym").write_text(content, encoding="utf-8")
+    (LIBS / "carrier.kicad_sym").write_text(fix_pin_orientations(content), encoding="utf-8")
 
 
 def write_footprints() -> None:
@@ -400,8 +432,8 @@ class SchBuilder:
     (property "Footprint" "" (at -1.778 0 90) (effects (font (size 1.27 1.27)) hide))
     (symbol "R_0_1" (rectangle (start -1.016 -2.54) (end 1.016 2.54) (stroke (width 0.2032) (type default)) (fill (type none))))
     (symbol "R_1_1"
-      (pin passive line (at 0 3.81) (length 1.27) (name "~" (effects (font (size 1.27 1.27)))) (number "1" (effects (font (size 1.27 1.27)))))
-      (pin passive line (at 0 -3.81) (length 1.27) (name "~" (effects (font (size 1.27 1.27)))) (number "2" (effects (font (size 1.27 1.27)))))
+      (pin passive line (at 0 3.81 90) (length 1.27) (name "~" (effects (font (size 1.27 1.27)))) (number "1" (effects (font (size 1.27 1.27)))))
+      (pin passive line (at 0 -3.81 270) (length 1.27) (name "~" (effects (font (size 1.27 1.27)))) (number "2" (effects (font (size 1.27 1.27)))))
     )
   )"""
 
@@ -479,8 +511,8 @@ def _conn_sym(name: str, pins: int) -> str:
     for i in range(pins):
         y = (i - (pins - 1) / 2) * 2.54
         pads.append(
-            f'(pin passive line (at -5.08 {y}) (length 2.54) (name "{i+1}" '
-            f'(effects (font (size 1.27 1.27)))) (number "{i+1}" (effects (font (size 1.27 1.27)))))'
+            f"      (pin passive line {pin_at(-5.08, y)} (length 2.54) (name \"{i + 1}\" "
+            f"(effects (font (size 1.27 1.27)))) (number \"{i + 1}\" (effects (font (size 1.27 1.27)))))"
         )
     return f"""
   (symbol "Connector:{name}"
@@ -492,7 +524,7 @@ def _conn_sym(name: str, pins: int) -> str:
         (stroke (width 0.254) (type default)) (fill (type background)))
     )
     (symbol "{name}_1_1"
-      {"".join(pads)}
+{chr(10).join(pads)}
     )
   )"""
 
@@ -533,8 +565,8 @@ def write_schematic() -> None:
     (symbol "C_0_1" (rectangle (start -2.032 -0.762) (end 2.032 0.762)
       (stroke (width 0.508) (type default)) (fill (type none))))
     (symbol "C_1_1"
-      (pin passive line (at 0 3.81) (length 2.54) (name "~" (effects (font (size 1.27 1.27)))) (number "1" (effects (font (size 1.27 1.27)))))
-      (pin passive line (at 0 -3.81) (length 2.54) (name "~" (effects (font (size 1.27 1.27)))) (number "2" (effects (font (size 1.27 1.27)))))
+      (pin passive line (at 0 3.81 90) (length 2.54) (name "~" (effects (font (size 1.27 1.27)))) (number "1" (effects (font (size 1.27 1.27)))))
+      (pin passive line (at 0 -3.81 270) (length 2.54) (name "~" (effects (font (size 1.27 1.27)))) (number "2" (effects (font (size 1.27 1.27)))))
     )
   )"""
     b.lib_symbols["Device:CP"] = """
@@ -543,8 +575,8 @@ def write_schematic() -> None:
     (property "Reference" "C" (at 0.635 5.08 0) (effects (font (size 1.27 1.27))))
     (property "Value" "CP" (at 0.635 -5.08 0) (effects (font (size 1.27 1.27))))
     (symbol "CP_1_1"
-      (pin passive line (at 0 5.08) (length 2.54) (name "+" (effects (font (size 1.27 1.27)))) (number "1" (effects (font (size 1.27 1.27)))))
-      (pin passive line (at 0 -5.08) (length 2.54) (name "-" (effects (font (size 1.27 1.27)))) (number "2" (effects (font (size 1.27 1.27)))))
+      (pin passive line (at 0 5.08 90) (length 2.54) (name "+" (effects (font (size 1.27 1.27)))) (number "1" (effects (font (size 1.27 1.27)))))
+      (pin passive line (at 0 -5.08 270) (length 2.54) (name "-" (effects (font (size 1.27 1.27)))) (number "2" (effects (font (size 1.27 1.27)))))
     )
   )"""
     b.lib_symbols["Switch:SW_Push"] = """
@@ -553,8 +585,8 @@ def write_schematic() -> None:
     (property "Reference" "SW" (at 3.175 2.54 0) (effects (font (size 1.27 1.27))))
     (property "Value" "SW_Push" (at 3.175 -2.54 0) (effects (font (size 1.27 1.27))))
     (symbol "SW_Push_1_1"
-      (pin passive line (at 0 0) (length 2.54) (name "1" (effects (font (size 1.27 1.27)))) (number "1" (effects (font (size 1.27 1.27)))))
-      (pin passive line (at 5.08 0) (length 2.54) (name "2" (effects (font (size 1.27 1.27)))) (number "2" (effects (font (size 1.27 1.27)))))
+      (pin passive line (at 0 0 180) (length 2.54) (name "1" (effects (font (size 1.27 1.27)))) (number "1" (effects (font (size 1.27 1.27)))))
+      (pin passive line (at 5.08 0 0) (length 2.54) (name "2" (effects (font (size 1.27 1.27)))) (number "2" (effects (font (size 1.27 1.27)))))
     )
   )"""
     csym = (LIBS / "carrier.kicad_sym").read_text(encoding="utf-8")
@@ -720,7 +752,7 @@ def write_schematic() -> None:
 """
     )
 
-    (ROOT / f"{PROJECT}.kicad_sch").write_text(b.build(), encoding="utf-8")
+    (ROOT / f"{PROJECT}.kicad_sch").write_text(fix_pin_orientations(b.build()), encoding="utf-8")
 
 
 def write_pcb() -> None:
@@ -938,6 +970,16 @@ See `../docs/kicad-next-steps.md` and `../hardware/measurements.md`.
     )
 
 
+def verify_pin_orientations() -> None:
+    """Raise if any pin (at X Y) lacks a third orientation value."""
+    pin_at_re = re.compile(r"\(pin [^\n]*?\(at (-?[0-9.]+) (-?[0-9.]+)\)(?! *-?[0-9.])( \(length)")
+    for path in (LIBS / "carrier.kicad_sym", ROOT / f"{PROJECT}.kicad_sch"):
+        text = path.read_text(encoding="utf-8")
+        hits = pin_at_re.findall(text)
+        if hits:
+            raise RuntimeError(f"{path}: {len(hits)} pin(s) missing orientation")
+
+
 def main() -> None:
     LIBS.mkdir(parents=True, exist_ok=True)
     write_carrier_sym()
@@ -947,6 +989,7 @@ def main() -> None:
     write_schematic()
     write_pcb()
     write_readme_kicad()
+    verify_pin_orientations()
     print(f"Generated KiCad placeholder in {ROOT}")
 
 
