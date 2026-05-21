@@ -1,4 +1,4 @@
-"""Placeholder PCB routing for generate_placeholder.py (v0.9+)."""
+"""Placeholder PCB routing for generate_placeholder.py (v0.9+ minimal carrier)."""
 from __future__ import annotations
 
 # Pad offsets (mm) from footprint anchor at (0,0).
@@ -47,23 +47,25 @@ PAD_OFFSETS: dict[str, dict[str, tuple[float, float]]] = {
     "carrier:M3_MountingHole": {},
 }
 
-TRACK_SIG = 0.25
-TRACK_PWR = 0.5  # J_MAIN ↔ C_MAIN only
-TRACK_DECO = 0.35  # U2 ↔ C_AHCT and C_MAIN → U2 feed
+# DevKitC-1 right-header power pads (footprint numeric); matches schematic 5V/GND position.
+ESP_5V_PAD = "21"
+ESP_GND_PAD = "25"
 
-# South channel below ESP body (y2 ≈ 65.5) — avoids top-edge power bus.
+TRACK_SIG = 0.25
+TRACK_PWR = 0.5
+TRACK_DIST = 0.4
+TRACK_DECO = 0.35
+
 PWR_FEED_X = 38.0
+GND_SPINE_X = 36.0
+LED_TREE_X = 92.0
 PWR_SOUTH_Y = 67.0
 
-# ESP DevKitC-1 — pin rows 22.86 mm apart; board outline 25.4 × 52.5 mm (verify clone).
 ESP_X1, ESP_Y1 = 45.0, 13.0
 ESP_ROW_W, ESP_BOARD_H = 22.86, 52.5
-ESP_BOARD_W = 25.4
 ESP_X2, ESP_Y2 = ESP_X1 + ESP_ROW_W, ESP_Y1 + ESP_BOARD_H
-USB_Y1, USB_Y2 = ESP_Y1, ESP_Y1 + 6.0
-ANT_Y1, ANT_Y2 = ESP_Y2 - 6.0, ESP_Y2
-SPINE_X = 72.0  # routing channel right of ESP pin rows
-ESP_ROUTE_X = ESP_X1 - 2.0  # west of left pin row
+SPINE_X = 72.0
+ESP_ROUTE_X = ESP_X1 - 2.0
 
 
 def pad_xy(
@@ -83,7 +85,6 @@ def _seg(x1: float, y1: float, x2: float, y2: float, width: float, net_id: int) 
 
 
 def _route_45(points: list[tuple[float, float]]) -> list[tuple[float, float, float, float]]:
-    """Axis-aligned + 45° corner segments between waypoints."""
     out: list[tuple[float, float, float, float]] = []
     for i in range(len(points) - 1):
         x1, y1 = points[i]
@@ -101,7 +102,6 @@ def _route_45(points: list[tuple[float, float]]) -> list[tuple[float, float, flo
 
 
 def _crosses_esp_interior(x1: float, y1: float, x2: float, y2: float) -> bool:
-    """True if axis-aligned segment passes through ESP body (not spine channel)."""
     xmin, xmax = min(x1, x2), max(x1, x2)
     ymin, ymax = min(y1, y2), max(y1, y2)
     if abs(y1 - y2) < 0.02:
@@ -112,14 +112,12 @@ def _crosses_esp_interior(x1: float, y1: float, x2: float, y2: float) -> bool:
 
 
 def _esp_bypass_y(esp_y: float) -> float:
-    """Route outside ESP USB / ANT keep-outs and below/above pin-row envelope."""
     if esp_y < 40.0:
-        return 10.0  # west channel under ESP (below y=13 body, clear USB y≤19)
-    return 66.5  # south of antenna keep-out (y≥57.8)
+        return 10.0
+    return 66.5
 
 
 def _path_esp_to_u2(esp: tuple[float, float], u2: tuple[float, float]) -> list[tuple[float, float]]:
-    """ESP GPIO pad → spine → U2 input without crossing ESP body."""
     ex, ey = esp
     ux, uy = u2
     if ex >= ESP_X2 - 0.5:
@@ -134,7 +132,7 @@ def build_placeholder_routing(
     fpmap: dict[str, str],
     net_ids: dict[str, int],
 ) -> str:
-    """LED data (×3) + minimal local power — no top bus, no LED 5V/GND pours."""
+    """Minimal carrier: main 5V/GND, ESP + U2 power, LED 5V/GND/DATA (×3)."""
 
     def p(ref: str, pad: str) -> tuple[float, float]:
         x, y = place[ref]
@@ -145,6 +143,7 @@ def build_placeholder_routing(
 
     raw: list[tuple[list[tuple[float, float]], float, str]] = []
 
+    # --- LED data (unchanged intent) ---
     led_channels = [
         ("LED1_IN", "18", "2", "3", "R_LED1", "J_LED1"),
         ("LED2_IN", "17", "5", "6", "R_LED2", "J_LED2"),
@@ -157,11 +156,10 @@ def build_placeholder_routing(
         r1 = p(rref, "1")
         j3 = p(jref, "3")
         net_data = net_in.replace("_IN", "_DATA")
-
         raw.append((_path_esp_to_u2(esp, u_i), TRACK_SIG, net_in))
         raw.append(([u_o, r1, j3], TRACK_SIG, net_data))
 
-    # Main in → bulk cap (direct, local only)
+    # --- Main in ---
     j5 = p("J_MAIN", "1")
     jg = p("J_MAIN", "2")
     c5 = p("C_MAIN", "1")
@@ -173,19 +171,58 @@ def build_placeholder_routing(
     gnd = p("U2", "7")
     c_v = p("C_AHCT", "1")
     c_g = p("C_AHCT", "2")
+    esp_5v = p("F_ESP", ESP_5V_PAD)
+    esp_gnd = p("F_ESP", ESP_GND_PAD)
 
-    # 5V logic: C_MAIN → U2 via west + south channel (no top-edge bus, no LED 5V pours)
+    # 5V hub at PWR_FEED_X (west of ESP): C_MAIN → U2, ESP 5V
     raw.append(
         (
             [c5, (PWR_FEED_X, c5[1]), (PWR_FEED_X, PWR_SOUTH_Y), (vcc[0], PWR_SOUTH_Y), vcc],
-            TRACK_DECO,
+            TRACK_DIST,
             "5V_LOGIC",
         )
     )
-
-    # C_AHCT decoupling — short local links at U2 only
+    raw.append(
+        (
+            [c5, (PWR_FEED_X, c5[1]), (PWR_FEED_X, esp_5v[1]), esp_5v],
+            TRACK_DIST,
+            "5V_LOGIC",
+        )
+    )
     raw.append(([vcc, (vcc[0], c_v[1]), c_v], TRACK_DECO, "5V_LOGIC"))
-    raw.append(([gnd, (gnd[0], c_g[1]), c_g], TRACK_DECO, "GND"))
+
+    # GND hub below ESP (y=10) + south tie at U2 — avoids crossing ESP body
+    gnd_hub_y = 10.0
+    raw.append(([cg, (GND_SPINE_X, cg[1]), (GND_SPINE_X, gnd_hub_y)], TRACK_DIST, "GND"))
+    raw.append(([esp_gnd, (esp_gnd[0], gnd_hub_y), (GND_SPINE_X, gnd_hub_y)], TRACK_DIST, "GND"))
+    raw.append(
+        (
+            [gnd, (gnd[0], PWR_SOUTH_Y), (GND_SPINE_X, PWR_SOUTH_Y), (GND_SPINE_X, gnd_hub_y)],
+            TRACK_DIST,
+            "GND",
+        )
+    )
+    raw.append(([c_g, (c_g[0], PWR_SOUTH_Y), (GND_SPINE_X, PWR_SOUTH_Y)], TRACK_DIST, "GND"))
+
+    for oe in ("1", "4", "10", "13"):
+        oe_pad = p("U2", oe)
+        raw.append(([oe_pad, (oe_pad[0], gnd[1])], TRACK_DECO, "GND"))
+
+    # LED terminals: 5V/GND via hub below ESP, then vertical in LED column only
+    led_pwr_hub_y = 10.0
+    raw.append(
+        (
+            [c5, (PWR_FEED_X, c5[1]), (PWR_FEED_X, led_pwr_hub_y), (LED_TREE_X, led_pwr_hub_y)],
+            TRACK_DIST,
+            "5V_LED",
+        )
+    )
+    raw.append(([(GND_SPINE_X, gnd_hub_y), (LED_TREE_X, gnd_hub_y)], TRACK_DIST, "GND"))
+    for jref in ("J_LED1", "J_LED2", "J_LED3"):
+        j1 = p(jref, "1")
+        j2 = p(jref, "2")
+        raw.append(([(LED_TREE_X, led_pwr_hub_y), (LED_TREE_X, j1[1]), j1], TRACK_DIST, "5V_LED"))
+        raw.append(([(LED_TREE_X, gnd_hub_y), (LED_TREE_X, j2[1]), j2], TRACK_DIST, "GND"))
 
     lines: list[str] = []
     for paths, width, net in raw:
@@ -197,6 +234,5 @@ def build_placeholder_routing(
     return "".join(lines)
 
 
-# Back-compat aliases
 build_led_data_routing = build_placeholder_routing
 build_visible_routing = build_placeholder_routing

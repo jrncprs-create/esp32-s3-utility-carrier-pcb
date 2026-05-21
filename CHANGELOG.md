@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [0.9.2] — 2026-05-21
+
+### Changed
+
+- Minimal carrier connectivity: ESP 5V/GND, J_MAIN/C_MAIN, U2 + OE→GND, C_AHCT, LED 5V/GND/DATA (×3).
+- GND/5V_LED via hubs below ESP (no top-edge bus); restore generator-format PCB after KiCad save glitch.
+
 ## [0.9.1] — 2026-05-21
 
 ### Changed
