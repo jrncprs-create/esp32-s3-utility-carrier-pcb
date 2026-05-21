@@ -420,6 +420,7 @@ class SchBuilder:
         self.items: list[str] = []
         self.x = 0
         self.y = 0
+        self.root_uuid = uid()
 
     def add_lib_symbol_device_r(self) -> None:
         if "Device:R" in self.lib_symbols:
@@ -485,8 +486,9 @@ class SchBuilder:
 
     def build(self) -> str:
         lib_body = "\n".join(self.lib_symbols.values())
+        # KiCad section order: lib_symbols, then sheet content (symbols/wires/labels), sheet_instances last.
         return f"""(kicad_sch (version 20231120) (generator "generate_placeholder.py")
-  (uuid {uid()})
+  (uuid {self.root_uuid})
   (paper "A3")
   (title_block
     (title "ESP32-S3 Utility Carrier v1")
@@ -498,10 +500,10 @@ class SchBuilder:
   (lib_symbols
 {lib_body}
   )
-  (sheet_instances
-    (path "/" (page "1"))
-  )
 {"".join(self.items)}
+  (sheet_instances
+    (path "/{self.root_uuid}" (page "1"))
+  )
 )
 """
 
@@ -591,13 +593,15 @@ def write_schematic() -> None:
   )"""
     csym = (LIBS / "carrier.kicad_sym").read_text(encoding="utf-8")
     names = ("SN74AHCT125N", "F_ESP", "SJ_SERVO")
+    lib_close = csym.rfind("\n)")
     for i, sname in enumerate(names):
         marker = f'(symbol "{sname}"'
         start = csym.index(marker)
         if i + 1 < len(names):
             end = csym.index(f'(symbol "{names[i + 1]}"', start)
         else:
-            end = csym.rfind("  )\n)")
+            close = csym.rfind("\n  )", start, lib_close)
+            end = close + len("\n  )") if close != -1 else lib_close
         chunk = csym[start:end].strip()
         chunk = chunk.replace(f'(symbol "{sname}"', f'(symbol "carrier:{sname}"', 1)
         b.lib_symbols[f"carrier:{sname}"] = f"  {chunk}\n"
@@ -744,12 +748,10 @@ def write_schematic() -> None:
 
     # Notes
     b.items.append(
-        f"""
-  (text "PLACEHOLDER SCHEMATIC - run ERC in KiCad\\n"
-    "ESP32 footprint NOT FINAL - see measurements.md\\n"
-    "Do NOT order PCB / no Gerbers"
-    (at 30 30 0) (effects (font (size 1.5 1.5)) (justify left)) (uuid {uid()}))
-"""
+        f'  (text "PLACEHOLDER SCHEMATIC - run ERC in KiCad\\n'
+        f"ESP32 footprint NOT FINAL - see measurements.md\\n"
+        f'Do NOT order PCB / no Gerbers"\n'
+        f"    (at 30 30 0) (effects (font (size 1.5 1.5)) (justify left)) (uuid {uid()}))\n"
     )
 
     (ROOT / f"{PROJECT}.kicad_sch").write_text(fix_pin_orientations(b.build()), encoding="utf-8")
@@ -813,12 +815,12 @@ def write_pcb() -> None:
         """
   (gr_rect (start 28 8) (end 62 58) (stroke (width 0.2) (type default)) (fill none) (layer "Dwgs.User") (tstamp 0))
   (gr_text "USB KEEP-OUT (placeholder)" (at 45 6 0) (layer "Dwgs.User") (tstamp 0)
-    (effects (font (size 1 1) (thickness 0.15)) (justify center)))
+    (effects (font (size 1 1) (thickness 0.15))))
   (gr_rect (start 30 50) (end 60 63) (stroke (width 0.2) (type dash)) (fill none) (layer "Dwgs.User") (tstamp 0))
   (gr_text "ANTENNA KEEP-OUT" (at 45 64 0) (layer "Dwgs.User") (tstamp 0)
-    (effects (font (size 0.9 0.9) (thickness 0.12)) (justify center)))
+    (effects (font (size 0.9 0.9) (thickness 0.12))))
   (gr_text "ESP32-S3 Utility Carrier v1 PLACEHOLDER" (at 45 2 0) (layer "F.SilkS") (tstamp 0)
-    (effects (font (size 1.2 1.2) (thickness 0.15)) (justify center)))
+    (effects (font (size 1.2 1.2) (thickness 0.15))))
 """
     )
 
@@ -970,6 +972,16 @@ See `../docs/kicad-next-steps.md` and `../hardware/measurements.md`.
     )
 
 
+def verify_schematic_layout(path: Path) -> None:
+    """sheet_instances must come after lib_symbols and sheet symbol instances."""
+    text = path.read_text(encoding="utf-8")
+    lib_end = text.index("  )\n", text.index("(lib_symbols"))
+    sheet_inst = text.index("(sheet_instances")
+    first_inst = text.index('(symbol (lib_id "', lib_end)
+    if sheet_inst < first_inst:
+        raise RuntimeError(f"{path}: sheet_instances before placed symbols")
+
+
 def verify_pin_orientations() -> None:
     """Raise if any pin (at X Y) lacks a third orientation value."""
     pin_at_re = re.compile(r"\(pin [^\n]*?\(at (-?[0-9.]+) (-?[0-9.]+)\)(?! *-?[0-9.])( \(length)")
@@ -990,6 +1002,7 @@ def main() -> None:
     write_pcb()
     write_readme_kicad()
     verify_pin_orientations()
+    verify_schematic_layout(ROOT / f"{PROJECT}.kicad_sch")
     print(f"Generated KiCad placeholder in {ROOT}")
 
 
