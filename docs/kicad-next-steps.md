@@ -41,8 +41,9 @@ kicad/
 
 ## 3. Placeholder ESP32 footprint
 
-- Gebruik **twee** `PinHeader_1x20_P2.54mm_Vertical` op afstand **`TBD_MM`** (officiële Espressif referentie ~25,4 mm boardbreedte, rij-afstand **nog meten** — vaak ~22,86 mm tussen rijen bij DevKitC, **niet blind overnemen**).
-- Tekst op silk: `ESP32 FOOTPRINT NIET DEFINITIEF`.
+- Gebruik **twee** `PinHeader_1x20_P2.54mm_Vertical` op afstand **22,86 mm** (hart-op-hart tussen rijen; zie `hardware/measurements.md`).
+- PCB envelope DevKit: **25,40 × 52,50 mm**; reserveer **62,74 mm** lengte voor USB keep-out tot gemeten.
+- Tekst op silk: `ESP32 FOOTPRINT VOORLOPIG — meet later`.
 - Teken **USB keep-out** rechthoek op Edge.Cuts.User of Dwgs.User.
 
 ---

@@ -32,4 +32,4 @@ Volledige tabel: **[hardware/pinout-table.md](pinout-table.md)**
 
 ## Footprint
 
-**NIET DEFINITIEF** — zie [hardware/measurements.md](measurements.md).
+**VOORLOPIG** (Espressif = diymore; meting later) — zie [hardware/measurements.md](measurements.md).

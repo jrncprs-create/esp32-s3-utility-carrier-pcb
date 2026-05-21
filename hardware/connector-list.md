@@ -22,7 +22,7 @@
 | J_BTN | Knoppen extern | 4 | JST-XH B2B-XH-A 4p | **Laag** |
 | J_ENC | Rotary extern | 5 | JST-XH B2B-XH-A 5p | **Laag** |
 | J_GPIO | Extra GPIO | 8 | JST-XH B2B-XH-A 8p (of 2×4p) | **Laag** signaal; 5V pin **Midden** |
-| F_ESP | ESP32 DevKit | 2×20 | Pin header 2,54 mm **NIET DEFINITIEF** | n.v.t. |
+| F_ESP | ESP32 DevKit | 2×20 | Pin header 2,54 mm, rij 22,86 mm **VOORLOPIG** | n.v.t. |
 | F_OLED | OLED direct | 4 | 1×4 pinheader 2,54 mm | **Laag** |
 | SW1–3 | Tact switch | 2 | 6×6 mm tactile TH | **Laag** |
 | ENC1 | EC11 | 5+2 | EC11 18 mm / 20 mm shaft footprint | **Laag** |

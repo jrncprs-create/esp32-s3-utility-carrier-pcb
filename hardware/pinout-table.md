@@ -1,7 +1,7 @@
 # Pinout-tabel (voorstel v0.9)
 
 **Status:** logische toewijzing op basis van ESP32-S3-DevKitC-1 v1.1 + N16R8-aannames.  
-**Niet definitief** tot fysieke meting en continuity-check op het echte Amazon-board.
+**Voorlopig** — footprint = Espressif DevKitC-1-ref (diymore B0F3XMYYQY); fysieke meting en continuity-check volgen later.
 
 Legenda risico: **Laag** | **Midden** | **Hoog** | **Verboden**
 

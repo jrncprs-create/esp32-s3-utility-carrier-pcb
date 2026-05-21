@@ -1,7 +1,7 @@
 # Kritische review briefing (v1 voorbereiding)
 
 Datum: 2026-05-21  
-Status: **voorbereidingsfase** — geen productie-PCB, geen Gerbers, geen definitieve ESP32-footprint.
+Status: **voorbereidingsfase** — geen productie-PCB, geen Gerbers. ESP32-footprint **voorlopig** = Espressif-ref (diymore B0F3XMYYQY; meting later).
 
 ## Wat klopt en sterk is
 

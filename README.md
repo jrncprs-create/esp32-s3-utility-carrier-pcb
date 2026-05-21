@@ -2,8 +2,8 @@
 
 Doel: een soldeerbare carrier-PCB voor een ESP32-S3 DevKit, bedoeld voor kleine interactieve installaties met LED-data, servo's, HLK-LD2450 mmWave sensor, SH1106 OLED-display, knoppen en rotary encoder.
 
-**Documentatieversie:** 0.9 (voorbereiding)  
-**Status:** specificatie compleet · **geen KiCad/Gerber-productie** · ESP32-footprint **NIET DEFINITIEF**
+**Documentatieversie:** 0.9.1 (voorbereiding)  
+**Status:** specificatie compleet · **geen KiCad/Gerber-productie** · ESP32-footprint **VOORLOPIG** (Espressif-ref = [diymore B0F3XMYYQY](https://www.amazon.nl/-/en/diymore-DevKitC-1-S3-1-N16R8-development-connectable/dp/B0F3XMYYQY), meting later)
 
 ## Documentatie-index
 
@@ -35,7 +35,7 @@ Doel: een soldeerbare carrier-PCB voor een ESP32-S3 DevKit, bedoeld voor kleine 
 ## Werkwijze
 
 1. ~~Specificatie, pinout, BOM, risico-check~~ (gedaan in v0.9 docs)
-2. **Werkplaatsmetingen** invullen in `hardware/measurements.md`
+2. **Werkplaatsmetingen** ter verificatie in `hardware/measurements.md` (werkwaarden staan al als Espressif-ref)
 3. KiCad schema + placeholder PCB (`docs/kicad-next-steps.md`)
 4. Geen Gerbers vóór ERC/DRC + risico-checklist + metingen
 5. v1 kale PCB, zelf solderen
@@ -43,13 +43,13 @@ Doel: een soldeerbare carrier-PCB voor een ESP32-S3 DevKit, bedoeld voor kleine 
 
 ## Rode vlaggen
 
-- ESP32-footprint **NIET DEFINITIEF** zonder fysieke metingen.
-- Amazon/diymore clone ≈ DevKitC-1 v1.1, maar **niet blind vertrouwen**.
+- ESP32-footprint **voorlopig = Espressif DevKitC-1** (diymore B0F3XMYYQY); **definitief na meting**.
+- Amazon/diymore: uitgaan van zelfde maat als Espressif tot meting bevestigt/tegenspreekt.
 - GPIO35/36/37 verboden bij N16R8 (octal PSRAM).
 - GPIO19/20 (USB), GPIO43/44 (UART0), GPIO0/3/45/46 (strapping), GPIO38/48 (onboard LED).
 - Hoofdvoeding: controleer stroom vóór alleen JST-XH op MAIN.
 
 ## Target board
 
-- [Amazon B0F3XMYYQY](https://www.amazon.nl/dp/B0F3XMYYQY) — vermoedelijk diymore ESP32-S3-DevKitC-1 N16R8
+- [diymore ESP32-S3-DevKitC-1 N16R8 — Amazon B0F3XMYYQY](https://www.amazon.nl/-/en/diymore-DevKitC-1-S3-1-N16R8-development-connectable/dp/B0F3XMYYQY) (footprint-werkwaarden = Espressif)
 - Referentie: [Espressif ESP32-S3-DevKitC-1 v1.1](https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32s3/esp32-s3-devkitc-1/user_guide_v1.1.html)

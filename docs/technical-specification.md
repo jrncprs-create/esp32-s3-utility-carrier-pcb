@@ -2,7 +2,7 @@
 
 Versie: **0.9 (voorbereiding)**  
 Datum: 2026-05-21  
-Status: **GEEN productie-PCB** · **GEEN Gerbers** · ESP32-footprint **NIET DEFINITIEF**
+Status: **GEEN productie-PCB** · **GEEN Gerbers** · ESP32-footprint **VOORLOPIG** (Espressif-ref = diymore B0F3XMYYQY; [meting later](../hardware/measurements.md))
 
 ---
 
@@ -34,7 +34,7 @@ Soldeerbare **carrier-PCB** voor een **ESP32-S3 DevKit** (plug-in via twee pin-h
 |---|---|
 | Referentie | [Espressif ESP32-S3-DevKitC-1 v1.1](https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32s3/esp32-s3-devkitc-1/user_guide_v1.1.html) |
 | Gebruikersboard | diymore / Amazon clone, ESP32-S3-WROOM-1-**N16R8** (vermoedelijk) |
-| Footprint carrier | 2× 1×20 pin-header **2,54 mm** — **NIET DEFINITIEF** |
+| Footprint carrier | 2× 1×20 @ **2,54 mm**, rij **22,86 mm** — **VOORLOPIG** (zie `hardware/measurements.md`) |
 | USB | DevKit USB-C moet aan **rand carrier** bereikbaar blijven (beide poorten indien aanwezig) |
 
 ---

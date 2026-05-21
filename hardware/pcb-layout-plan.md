@@ -1,7 +1,7 @@
 # PCB-layoutplan (tekst) v0.9
 
 **Boardgrootte:** nog vrij — richting **~90 × 65 mm** na ESP-meting (twee USB’s + connectoren aan randen).  
-**ESP32-footprint:** **NIET DEFINITIEF** — centrale zone is placeholder.
+**ESP32-footprint:** **VOORLOPIG** (Espressif-ref, diymore B0F3XMYYQY) — zie `hardware/measurements.md`.
 
 ---
 
