@@ -6,10 +6,12 @@
 
 ### Changed
 
-- PCB layout aligned to **6-zone placement diagram** (130 × 85 mm).
-- Thin dashed Dwgs.User zone boxes (POWER, ESP, LED, SENSOR/UI, SERVO, W5500).
-- Components placed per zone; LED connectors on right edge (x≈120); W5500 bottom-right.
-- No copper tracks or GND pour — airwires only.
+- PCB layout aligned to **6-zone placement diagram** (130 × 85 mm); `DOC_REV` `0.5-placeholder`.
+- Components per zone: power top-left, ESP center-left (USB/ANT keep-outs), LED top-right
+  (U2 left, R column, J_LED on right edge ~x120), sensor/UI bottom-left, servo mid-left,
+  W5500 bottom-right (spacious).
+- No large zone flood boxes; generator verifies no segments, pours, or `(justify center)`.
+- Airwires only — no copper tracks or GND pour.
 
 ## [0.4.0] — 2026-05-21
 

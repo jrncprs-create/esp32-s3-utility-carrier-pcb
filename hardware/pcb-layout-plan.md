@@ -1,35 +1,37 @@
 # PCB-layoutplan (tekst) v0.5
 
-**Board:** **130 × 85 mm** (tijdelijk). **Marge:** 5 mm; edge-connectors 4 mm.  
-**Zone-diagram:** zie gebruikersdiagram / `Dwgs.User` dashed boxes in KiCad.  
-**Generator:** `kicad/tools/generate_placeholder.py`.
+**Board:** **130 × 85 mm** (tijdelijk). **Marge:** 5 mm (edge connectors 4 mm).  
+**Generator:** `kicad/tools/generate_placeholder.py` · **DOC_REV** `0.5-placeholder`.
+
+KiCad-origin = **linksonder**; hoge Y = bovenkant board.
 
 ---
 
-## Zes zones (mm, origin onder-links)
+## Visueel beleid v0.5
 
-| Zone | Box (x1,y1)-(x2,y2) | Componenten |
+- Geen zone-kaders over het hele board (diagram = gids alleen).
+- Geen GND-pour, geen placeholder-tracks — **airwires** in KiCad.
+- Dunne Dwgs.User-lijnen alleen bij ESP (outline + USB/ANT keep-outs).
+- Kleine horizontale F.SilkS labels per zone; geen `(justify center)` op PCB.
+
+---
+
+## Zones (plaatsing)
+
+| Zone | Locatie | Refs (at x,y mm) |
 |---|---|---|
-| 1 POWER | (10,58)-(48,82) | J_MAIN, C_MAIN |
-| 2 ESP32-S3 | (50,12)-(78,68) | F_ESP; USB onder, ANT boven |
-| 3 LED | (82,48)-(126,82) | U2, R_LED1-4, J_LED1-4 @ x≈120 |
-| 4 SENSOR/UI | (10,8)-(52,38) | LD2450, OLED, I2C, SW*, ENC |
-| 5 SERVO | (10,40)-(48,56) | SJ_SERVO, C_SERVO, J_SERVO1/2 |
-| 6 W5500 | (78,8)-(126,32) | J_W5500 optional |
-
-**M3:** hoeken @ (8.2, 8.2), (121.8, 8.2), (8.2, 76.8), (121.8, 76.8).
-
----
-
-## Visueel beleid
-
-- Dunne **dashed** zone-kaders op Dwgs.User (geen gevulde vlakken).
-- Geen copper tracks, geen GND-pour — **airwires** in KiCad.
-- Kleine F.SilkS labels per functie; zone-namen in Dwgs.User.
+| Power | linksboven | J_MAIN @(10,68), C_MAIN @(20,68) |
+| ESP | midden-links | F_ESP @(16,20) — USB laag Y, ANT hoog Y |
+| LED | rechtsboven | U2 @(62,58), R_LED* kolom @(84,*), J_LED* @(115,*) |
+| Sensor/UI | linksonder | J_LD2450, J_OLED_EXT, J_I2C, J_BTN, F_OLED, SW1–3, J_ENC |
+| Servo | midden-links / onder-mid | SJ_SERVO, C_SERVO, J_SERVO1/2 @(42–55, 30–38) |
+| Ethernet | rechtsonder (ruim) | J_W5500 @(95,12) — NOT POPULATED |
+| M3 | hoeken | H1–H4 @ ±8.2 mm van hoek |
 
 ---
 
-## Nog niet productieklaar
+## Silk (kort)
 
-- ESP-footprint TBD (`hardware/measurements.md`).
-- Geen Gerbers / geen routing.
+`POWER IN 5V` · `LED OUTPUTS` / `LED1-3: 5 TUBES` / `LED4: AUX` ·  
+`SENSOR / OLED / UI` · `SERVO POWER` · `W5500 OPTIONAL` / `ETHERNET / ART-NET` ·  
+`ESP FOOTPRINT TBD` / `MEASURE BEFORE FAB` · `FOOTPRINT TBD` (W5500)

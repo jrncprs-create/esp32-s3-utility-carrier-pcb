@@ -35,7 +35,7 @@ Doel: een soldeerbare carrier-PCB voor een ESP32-S3 DevKit, bedoeld voor kleine 
 - **Optionele W5500** header **J_W5500** (8p): 3V3, GND, SPI + CS/RST/INT op **GPIO5/13/14/47/4/39** — **NOT POPULATED**, voor toekomstige bedrade Ethernet/Art-Net route.
 - Pinout conflict-check: zie [hardware/pinout-table.md](hardware/pinout-table.md).
 - Connectorfamilie signaal: **JST-XH 2,54 mm** through-hole waar mogelijk.
-- PCB placeholder **130 × 85 mm**, layout volgens **6-zone diagram** (dashed guides in KiCad), **4× M3**, airwires only — **geen** definitieve routing.
+- PCB placeholder **130 × 85 mm**, **6-zone layout** (geen zone-vlakken; ESP keep-outs alleen), **4× M3**, airwires only — **geen** definitieve routing.
 
 ## Werkwijze
 
