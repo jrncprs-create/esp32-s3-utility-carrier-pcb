@@ -6,11 +6,13 @@
 
 ### Changed
 
-- PCB placeholder layout cleanup: zones for power (top-left), ESP center, LED column right,
-  AHCT near LEDs, sensor/OLED/UI cluster lower-left, W5500 bottom-left with clearance.
-- All connectors verified inside 90×65 mm outline (`verify_pcb_layout()`).
-- Removed diagonal placeholder copper; short horizontal 5V/GND stubs only (airwires otherwise).
-- Silk labels: LED1–3 5-tube, LED4 AUX, W5500 optional, ESP footprint not final.
+- PCB placeholder **visual layout cleanup** (reproducible via `generate_placeholder.py`):
+  - Board **100 × 70 mm**, **5 mm** keep-in margin, **4× M3** mounting holes.
+  - Zones: power (top-left), ESP (center-left), LED+AHCT (right), sensor/OLED/UI (lower-left),
+    servo (left), W5500 (bottom, optional).
+  - No overlapping silk; connectors inset from edges; **no signal copper** (airwires + GND pour only).
+  - Dwgs.User zone boxes + USB/antenna keep-outs aligned to ESP.
+- Fix W5500 schematic text string (unterminated quote).
 
 ## [0.2.0] — 2026-05-21
 

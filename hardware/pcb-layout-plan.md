@@ -1,60 +1,56 @@
 # PCB-layoutplan (tekst) v0.3
 
-**Boardgrootte:** **90 × 65 mm** (placeholder).  
-**ESP32-footprint:** **VOORLOPIG** — zie `hardware/measurements.md`.  
-**KiCad:** posities worden gegenereerd door `kicad/tools/generate_placeholder.py` (`BOARD_W/H`, placement list).
+**Board:** **100 × 70 mm** (placeholder).  
+**Marges:** 5 mm keep-in; M3-centers op 9 mm van hoek.  
+**Generator:** `kicad/tools/generate_placeholder.py` — `BOARD_W`, `BOARD_H`, placement list.
 
 ---
 
-## 1. Zones (v0.3)
+## Zones
 
 ```text
-+------------------------------------------------------------------+
-| POWER          |     USB/antenna keep-out (Dwgs.User)            |
-| J_MAIN C_*     |     +-------- ESP (F_ESP) --------+  LED1-3    |
-| SJ_SERVO       |     |  NIET DEFINITIEF            |  5-TUBE    |
-|                |     +-----------------------------+  J_LED*    |
-| SERVO          |              U2 AHCT125 ---------->  (right)  |
-| J_SERVO*       |                                                 |
-|                |  SENSOR/OLED/I2C cluster                         |
-| J_LD J_OLED    |  J_BTN J_ENC (UI)                                |
-| J_I2C F_OLED   |                                                 |
-| W5500 (8p)     |  OPTIONAL / NOT POPULATED                        |
-+------------------------------------------------------------------+
++------------------------------------------------------------------------+
+| [M3]  POWER (J_MAIN, C_MAIN)                              [M3]         |
+|       W5500 zone (optional)                                            |
+|       +---------------- ESP ----------------+   U2    J_LED1           |
+|       | USB keep-out (bottom)              |   AHCT   J_LED2           |
+|       | ANTENNA keep-out (top)             |         J_LED3           |
+|       +------------------------------------+         J_LED4           |
+|  SERVO   SENSOR/OLED/I2C                         (5-tube / AUX labels)  |
+|  J_SERVO*  J_LD J_OLED J_I2C                                          |
+|            SW* J_BTN J_ENC                              [M3]    [M3]   |
++------------------------------------------------------------------------+
 ```
 
 ---
 
-## 2. Plaatsingregels (v0.3)
+## Plaatsing (samenvatting)
 
-| Element | Positie | Reden |
+| Zone | Componenten | Positie (mm, pad-1) |
 |---|---|---|
-| **J_MAIN … C_SERVO** | Linksboven (y≈4 mm) | Korte 5V/GND stubs |
-| **F_ESP** | Centrum (28, 10) | Binnen outline; USB keep-out boven |
-| **U2 + C_AHCT** | Tussen ESP en LED-kolom | Korte AHCT → LED data |
-| **J_LED1–3** | Rechterrand, verticaal | 5-buizen outputs |
-| **J_LED4** | Rechts onder LED1–3 | AUX / reserve |
-| **J_LD2450, J_OLED, J_I2C, F_OLED** | Linkeronder cluster | Sensor + display bedrading |
-| **SW*, J_BTN, J_ENC** | Onder midden | Frontpaneel UI |
-| **J_W5500** | Onder links (8, 57) | 17,5 mm breedte; niet buiten board |
-| **Routing** | Geen lange diagonalen | Placeholder: airwires OK |
+| Power | J_MAIN, C_MAIN | linksboven ~(10,10) |
+| Servo pwr | SJ_SERVO, C_SERVO | ~(10,34) |
+| ESP | F_ESP | (22, 14) |
+| LED | U2, R_LED*, J_LED1–4 | rechts; J @ x=86, y=16/28/40/52 |
+| Servo | J_SERVO1/2 | (10,38), (18,38) |
+| Sensor/UI | J_LD, J_OLED, J_I2C, F_OLED, SW*, J_BTN, J_ENC | linksonder / onder midden |
+| Ethernet | J_W5500 | (22, 8) — NOT POPULATED |
+| Mount | H1–H4 M3 | hoeken @(9,9), (91,9), (9,61), (91,61) |
 
 ---
 
-## 3. Silk (placeholder)
+## Routing-beleid v0.3
 
-| Tekst | Zone |
-|---|---|
-| `LED1-3: 5-TUBE OUTPUT` | Rechtsboven |
-| `LED4: AUX / RESERVE` | Rechts midden |
-| `W5500 OPTIONAL / NOT POPULATED` | Boven J_W5500 |
-| `ESP FOOTPRINT NIET DEFINITIEF` | Onder ESP-zone |
+- **Geen** placeholder signaal-tracks.
+- **GND zone** met inset (~8 mm van rand).
+- Overige nets: **airwires** in KiCad.
 
 ---
 
-## 4. Nog niet in v0.3
+## Silk (kort, horizontaal)
 
-- Definitieve ESP-meting en footprint
-- Volledige copper routing
-- M3 montagegaten (footprints in layoutplan v0.9, nog niet in KiCad placeholder)
-- Proto-gaten vak
+- `POWER IN 5V` / `LED PWR EXTERNAL / PER TUBE`
+- `ESP FOOTPRINT NIET DEFINITIEF` / `MEASURE BEFORE FAB`
+- `LED1-3: 5 TUBE OUTPUTS` / `LED4: AUX / RESERVE`
+- `SENSOR / OLED / UI` / `SERVO 5V VIA SJ_SERVO`
+- `W5500 OPTIONAL / NOT POPULATED` / `ETHERNET FOR RESOLUME / ART-NET`

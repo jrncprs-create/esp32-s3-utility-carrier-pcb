@@ -1,0 +1,10 @@
+(footprint "M3_MountingHole" (version 20240108) (generator "generate_placeholder.py")
+
+  (descr "M3 mounting hole 3.2mm drill")
+  (tags "mounting M3")
+  (attr through_hole)
+  (fp_text reference "H" (at 0 -4) (layer "F.SilkS") hide)
+  (fp_text value "M3" (at 0 4) (layer "F.Fab") hide)
+  (pad "" np_thru_hole circle (at 0 0) (size 6.0 6.0) (drill 3.2) (layers "*.Cu" "*.Mask"))
+
+)

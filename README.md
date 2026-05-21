@@ -2,8 +2,8 @@
 
 Doel: een soldeerbare carrier-PCB voor een ESP32-S3 DevKit, bedoeld voor kleine interactieve installaties met LED-data, servo's, HLK-LD2450 mmWave sensor, SH1106 OLED-display, knoppen en rotary encoder.
 
-**Documentatieversie:** 0.2 (placeholder)  
-**Status:** KiCad placeholder v0.2 · **nog niet productieklaar** · **geen Gerbers** · ESP32-footprint blijft **NIET DEFINITIEF** (meting later · [diymore B0F3XMYYQY](https://www.amazon.nl/-/en/diymore-DevKitC-1-S3-1-N16R8-development-connectable/dp/B0F3XMYYQY))
+**Documentatieversie:** 0.3 (placeholder)  
+**Status:** KiCad placeholder v0.3 · **nog niet productieklaar** · **geen Gerbers** · ESP32-footprint blijft **NIET DEFINITIEF** (meting later · [diymore B0F3XMYYQY](https://www.amazon.nl/-/en/diymore-DevKitC-1-S3-1-N16R8-development-connectable/dp/B0F3XMYYQY))
 
 ## Documentatie-index
 
@@ -23,7 +23,7 @@ Doel: een soldeerbare carrier-PCB voor een ESP32-S3 DevKit, bedoeld voor kleine 
 | [hardware/measurements.md](hardware/measurements.md) | **Werkplaats meetformulier** |
 | [docs/pcb-briefing.md](docs/pcb-briefing.md) | Oorspronkelijke briefing (archief) |
 
-## Belangrijkste ontwerpkeuzes (v0.2)
+## Belangrijkste ontwerpkeuzes (v0.3)
 
 - ESP32-S3 DevKit blijft los module met eigen USB-C.
 - Eén **5V MAIN IN** — primair **JST-VH** of schroefklem; JST-XH alleen secundair met stroomlimiet.
@@ -35,6 +35,7 @@ Doel: een soldeerbare carrier-PCB voor een ESP32-S3 DevKit, bedoeld voor kleine 
 - **Optionele W5500** header **J_W5500** (8p): 3V3, GND, SPI + CS/RST/INT op **GPIO5/13/14/47/4/39** — **NOT POPULATED**, voor toekomstige bedrade Ethernet/Art-Net route.
 - Pinout conflict-check: zie [hardware/pinout-table.md](hardware/pinout-table.md).
 - Connectorfamilie signaal: **JST-XH 2,54 mm** through-hole waar mogelijk.
+- PCB placeholder **100 × 70 mm**, zone-layout (power / ESP / LED / sensor-UI / servo / W5500), **4× M3** montagegaten — visueel opgeschoond, **geen** definitieve routing.
 
 ## Werkwijze
 
