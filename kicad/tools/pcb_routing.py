@@ -1,9 +1,10 @@
-"""LED-data-only PCB routing for generate_placeholder.py (v0.8)."""
+"""Placeholder PCB routing for generate_placeholder.py (v0.9 phase 2)."""
 from __future__ import annotations
 
 # Pad offsets (mm) from footprint anchor at (0,0).
 PAD_OFFSETS: dict[str, dict[str, tuple[float, float]]] = {
-    "carrier:JST_VH_1x02_Placeholder": {"1": (0, 0), "2": (3.96, 0)},
+    "carrier:ScrewTerm_2p_5.08_Placeholder": {"1": (0, 0), "2": (5.08, 0)},
+    "carrier:ScrewTerm_3p_5.08_Placeholder": {"1": (0, 0), "2": (5.08, 0), "3": (10.16, 0)},
     "carrier:JST_XH_1x03_Placeholder": {"1": (0, 0), "2": (2.5, 0), "3": (5.0, 0)},
     "carrier:JST_XH_1x04_Placeholder": {
         "1": (0, 0),
@@ -18,7 +19,7 @@ PAD_OFFSETS: dict[str, dict[str, tuple[float, float]]] = {
         "4": (7.5, 0),
         "5": (10.0, 0),
     },
-    "carrier:JST_W5500_1x08_Placeholder": {str(i): ((i - 1) * 2.5, 0) for i in range(1, 9)},
+    "carrier:W5500_SBC_USR_ES1_Placeholder": {str(i): ((i - 1) * 2.5, 0) for i in range(1, 9)},
     "carrier:F_ESP_2x20_Placeholder": {
         **{str(i): (0, (i - 1) * 2.54) for i in range(1, 21)},
         **{str(i): (22.86, (i - 21) * 2.54) for i in range(21, 41)},
@@ -43,19 +44,22 @@ PAD_OFFSETS: dict[str, dict[str, tuple[float, float]]] = {
     "Capacitor_THT:CP_Radial_D5.0mm_P2.50mm": {"1": (0, 0), "2": (2.5, 0)},
     "Capacitor_THT:C_Disc_D3mm_W2mm_Horizontal": {"1": (0, 0), "2": (3.0, 0)},
     "Resistor_THT:R_AXIAL-0.4_D5.1mm_L12.0mm_Horizontal": {"1": (0, 0), "2": (12.0, 0)},
-    "Button_Switch_THT:SW_PUSH_6mm": {"1": (-2.54, 0), "2": (2.54, 0)},
     "carrier:M3_MountingHole": {},
 }
 
 TRACK_SIG = 0.25
+TRACK_PWR = 0.5
 TRACK_DECO = 0.35
 
-# ESP placeholder outline + keep-outs (measure before fab — routing uses margin).
+# ESP DevKitC-1 — pin rows 22.86 mm apart; board outline 25.4 × 52.5 mm (verify clone).
 ESP_X1, ESP_Y1 = 45.0, 13.0
-ESP_X2, ESP_Y2 = 67.86, 63.8
-USB_Y1, USB_Y2 = 13.0, 19.0
-ANT_Y1, ANT_Y2 = 57.8, 63.8
-SPINE_X = 70.0  # routing channel right of ESP
+ESP_ROW_W, ESP_BOARD_H = 22.86, 52.5
+ESP_BOARD_W = 25.4
+ESP_X2, ESP_Y2 = ESP_X1 + ESP_ROW_W, ESP_Y1 + ESP_BOARD_H
+USB_Y1, USB_Y2 = ESP_Y1, ESP_Y1 + 6.0
+ANT_Y1, ANT_Y2 = ESP_Y2 - 6.0, ESP_Y2
+SPINE_X = 72.0  # routing channel right of ESP pin rows
+ESP_ROUTE_X = ESP_X1 - 2.0  # west of left pin row
 
 
 def pad_xy(
@@ -104,10 +108,10 @@ def _crosses_esp_interior(x1: float, y1: float, x2: float, y2: float) -> bool:
 
 
 def _esp_bypass_y(esp_y: float) -> float:
-    """Route outside ESP USB / ANT keep-outs."""
+    """Route outside ESP USB / ANT keep-outs and below/above pin-row envelope."""
     if esp_y < 40.0:
-        return 21.0  # above USB keep-out (y≤19)
-    return 64.5  # below antenna keep-out (y≥57.8)
+        return 10.0  # west channel under ESP (below y=13 body, clear USB y≤19)
+    return 66.5  # south of antenna keep-out (y≥57.8)
 
 
 def _path_esp_to_u2(esp: tuple[float, float], u2: tuple[float, float]) -> list[tuple[float, float]]:
@@ -117,16 +121,16 @@ def _path_esp_to_u2(esp: tuple[float, float], u2: tuple[float, float]) -> list[t
     if ex >= ESP_X2 - 0.5:
         return [esp, (SPINE_X, ey), (SPINE_X, uy), u2]
     by = _esp_bypass_y(ey)
-    return [esp, (ex, by), (SPINE_X, by), (SPINE_X, uy), u2]
+    return [esp, (ESP_ROUTE_X, ey), (ESP_ROUTE_X, by), (SPINE_X, by), (SPINE_X, uy), u2]
 
 
-def build_led_data_routing(
+def build_placeholder_routing(
     place: dict[str, tuple[float, float]],
     rotate: dict[str, float],
     fpmap: dict[str, str],
     net_ids: dict[str, int],
 ) -> str:
-    """Thin LED data + short C_AHCT decoupling only (no board-wide power)."""
+    """LED data (×3) + limited local power — no board-wide GND buses."""
 
     def p(ref: str, pad: str) -> tuple[float, float]:
         x, y = place[ref]
@@ -141,7 +145,6 @@ def build_led_data_routing(
         ("LED1_IN", "18", "2", "3", "R_LED1", "J_LED1"),
         ("LED2_IN", "17", "5", "6", "R_LED2", "J_LED2"),
         ("LED3_IN", "21", "9", "8", "R_LED3", "J_LED3"),
-        ("LED4_IN", "12", "11", "12", "R_LED4", "J_LED4"),
     ]
     for net_in, esp_pad, u_in, u_out, rref, jref in led_channels:
         esp = p("F_ESP", esp_pad)
@@ -154,8 +157,28 @@ def build_led_data_routing(
         raw.append((_path_esp_to_u2(esp, u_i), TRACK_SIG, net_in))
         raw.append(([u_o, r1, j3], TRACK_SIG, net_data))
 
-    # C_AHCT decoupling — short local links at U2 only
+    # Main in → bulk cap (local only)
+    j5 = p("J_MAIN", "1")
+    jg = p("J_MAIN", "2")
+    c5 = p("C_MAIN", "1")
+    cg = p("C_MAIN", "2")
+    raw.append(([j5, c5], TRACK_PWR, "5V_MAIN"))
+    raw.append(([jg, cg], TRACK_PWR, "GND"))
+
+    # Short 5V logic feed to U2 VCC (north bus y=10, clear of ESP)
     vcc = p("U2", "14")
+    pwr_bus_y = 10.0
+    raw.append(
+        ([c5, (c5[0], pwr_bus_y), (vcc[0] - 4, pwr_bus_y), (vcc[0] - 4, vcc[1]), vcc], TRACK_PWR, "5V_LOGIC")
+    )
+
+    # Optional short 5V_LED stubs to LED screw terminals (pin 1 = 5V)
+    led_bus_x = c5[0]
+    for jref in ("J_LED1", "J_LED2", "J_LED3"):
+        j1 = p(jref, "1")
+        raw.append(([(led_bus_x, pwr_bus_y), (j1[0], pwr_bus_y), j1], TRACK_PWR, "5V_LED"))
+
+    # C_AHCT decoupling — short local links at U2 only
     gnd = p("U2", "7")
     c_v = p("C_AHCT", "1")
     c_g = p("C_AHCT", "2")
@@ -172,5 +195,6 @@ def build_led_data_routing(
     return "".join(lines)
 
 
-# Back-compat alias (generator may still import old name during transition)
-build_visible_routing = build_led_data_routing
+# Back-compat aliases
+build_led_data_routing = build_placeholder_routing
+build_visible_routing = build_placeholder_routing

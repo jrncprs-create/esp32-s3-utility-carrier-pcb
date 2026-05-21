@@ -1,63 +1,64 @@
-# PCB-layoutplan (tekst) v0.6
+# PCB-layoutplan (tekst) v0.9 phase 2
 
 **Board:** **130 × 85 mm**. **Marge:** 5 mm (edge connectors 4 mm).  
-**Generator:** `kicad/tools/generate_placeholder.py` · **DOC_REV** `0.6-placeholder`.
+**Generator:** `kicad/tools/generate_placeholder.py` · **DOC_REV** `0.9-phase2`.
 
-KiCad-origin = **linksonder**; hoge Y = bovenkant board. Plaatsing = `PCB_PLACE` / `PCB_SILK` (geen zone-interpretatie).
-
----
-
-## Visueel beleid v0.6
-
-- Geen zone-kaders / flood op F.Cu.
-- Geen GND-pour, geen placeholder-tracks — **airwires** in KiCad.
-- Dunne Dwgs.User: ESP-outline, USB/ANT keep-outs, W5500-reserve **30 × 16 mm** (gestippeld).
-- Kleine horizontale F.SilkS labels; `verify_no_overlap()` bij genereren.
+KiCad-origin = **linksonder**; hoge Y = bovenkant board. Plaatsing = `PCB_PLACE` / `PCB_SILK`.
 
 ---
 
-## Componenten (mm, at x,y)
+## Visueel beleid
+
+- Geen zone-kaders / GND-pour op F.Cu.
+- **Copper (placeholder):** 3× LED-data (0,25 mm), J_MAIN→C_MAIN, korte 5V naar U2 + 5V_LED naar J_LED1–3; **geen** board-wide GND-bussen.
+- Dwgs.User: ESP **25,4×52,5 mm** outline, USB/ANT keep-outs, W5500 **23×29 mm** module + header keep-out.
+- Sensor/UI/servo/W5500-signalen: ratsnest.
+
+---
+
+## Componenten (mm, at x,y) — Phase 2 tabel
 
 | Ref | x | y | Opmerking |
 |---|---:|---:|---|
 | H1–H4 | 7 / 123 | 7 / 78 | M3 hoeken |
-| J_MAIN | 8 | 14 | |
-| C_MAIN | 22 | 14 | |
-| F_ESP | **45** | 13 | Tabel **42** + 3 mm i.v.m. J_I2C |
-| U2 | 78 | 28 | |
-| C_AHCT | 78 | 50 | |
-| R_LED1–4 | 94 | 18 / 30 / 42 / 54 | |
-| J_LED1–4 | 112 | 18 / 30 / 42 / 54 | |
+| J_MAIN | 10 | 16 | Schroefklem 2p 5,08 mm |
+| C_MAIN | 26 | 14 | |
+| SJ_SERVO | 10 | 30 | |
+| C_SERVO | 22 | 28 | |
+| J_SERVO2 | 24 | 38 | |
+| J_SERVO1 | 24 | 48 | |
+| F_ESP | 45 | 13 | DevKitC-1 **25,4×52,5** — verify clone |
 | J_LD2450 | 8 | 58 | |
-| J_OLED_EXT | 22 | 58 | |
-| J_I2C | 36 | 58 | |
-| J_BTN | 8 | 68 | |
-| SW1–3 | 24 / 34 / 44 | 68 | |
-| J_ENC | 56 | 68 | |
-| SJ_SERVO | 70 | 66 | |
-| C_SERVO | 82 | 64 | |
-| J_SERVO1/2 | 70 / 84 | 74 | |
-| J_W5500 | 94 | 70 | NOT POPULATED |
+| J_OLED_EXT | 20 | 58 | |
+| J_I2C | 32 | 58 | |
+| J_BTN | 70 | 55 | Extern alleen |
+| J_ENC | 84 | 62 | Extern alleen |
+| U2 | 72 | 24 | SN74AHCT125N |
+| C_AHCT | 80 | 46 | |
+| R_LED1 / J_LED1 | 86 / 106 | 14 | Schroefklem 3p |
+| R_LED2 / J_LED2 | 86 / 106 | 24 | |
+| R_LED3 / J_LED3 | 86 / 106 | 34 | |
+| J_W5500 | 100 | 64 | SBC-USR-ES1 TBD |
+
+**Niet geplaatst:** SW1–3, ENC1, F_OLED, F_MAIN, J_LED4, R_LED4.
 
 ---
 
-## Silk (mm) — tabel vs gegenereerd
+## Silk (samenvatting)
 
-| Label | Tabel | PCB |
-|---|---|---|
-| POWER IN 5V | 15, 10 | 15, 10 |
-| ESP FOOTPRINT TBD | 54, 70 | 42, 64.5 |
-| MEASURE BEFORE FAB | 54, 73 | 42, 66.2 |
-| LED OUTPUTS / LED1-3 | 100, 12 / 14 | 100, 12 / 14 |
-| LED4: AUX | 100, 58 | 107, 60 |
-| SENSOR / OLED / UI | 26, 54 | 26, 54 |
-| SERVO POWER | 78, 62 | 78, 62 |
-| USR-ES1 / W5500 TBD | 103, 66 | 103, 66 |
-| RJ45 TO EDGE | 116, 74 | 116, 67 |
+| Label | Positie (ca.) |
+|---|---|
+| POWER IN 5V | 12, 10 |
+| LED OUTPUTS | 98, 10 |
+| SENSOR / DISPLAY | 20, 52 |
+| UI EXTERNAL | 72, 48 |
+| DevKitC-1 dims assumed / verify clone | 8, 68–70 |
+| W5500 SBC-USR-ES1 TBD | 14, 6–8 |
+| RJ45 TO EDGE | 115, 78 |
 
 ---
 
 ## Footprints TBD
 
-- `F_ESP` — 2×20 placeholder; meet vóór productie.
-- `J_W5500` — USR-ES1 / RJ45 naar rand; header placeholder.
+- `F_ESP` — Espressif DevKitC-1 25,4×52,5 mm; meet clone vóór fab.
+- `J_W5500` — SBC-USR-ES1 23×29 mm; **header pitch/positie meten**; RJ45 naar boardrand.

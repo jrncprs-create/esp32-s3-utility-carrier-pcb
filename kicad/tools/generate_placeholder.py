@@ -10,13 +10,18 @@ from pathlib import Path
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from pcb_routing import build_led_data_routing  # noqa: E402
+from pcb_routing import build_placeholder_routing  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 LIBS = ROOT / "libraries"
 PRETTY = LIBS / "carrier.pretty"
 PROJECT = "esp32-s3-utility-carrier"
-DOC_REV = "0.8-placeholder"
+DOC_REV = "0.9-phase2"
+
+FORBIDDEN_REFS = frozenset(
+    {"F_MAIN", "SW1", "SW2", "SW3", "F_OLED", "J_LED4", "R_LED4", "ENC1"}
+)
+FORBIDDEN_NETS = frozenset({"LED4_IN", "LED4_DATA"})
 
 # PCB placement v0.7 — approved layout plan (mm, KiCad origin lower-left, Y up).
 BOARD_W = 130.0
@@ -24,14 +29,14 @@ BOARD_H = 85.0
 BOARD_MARGIN = 5.0
 EDGE_CONNECTOR_MARGIN = 4.0
 
-# Single source of truth for PCB component + label positions (do not reinterpret).
+# Single source of truth for PCB component + label positions (Phase 2 approved table).
 PCB_PLACE: dict[str, tuple[float, float]] = {
     "H1": (7, 7),
     "H2": (123, 7),
     "H3": (7, 78),
     "H4": (123, 78),
-    "J_MAIN": (12, 18),
-    "C_MAIN": (22, 14),
+    "J_MAIN": (10, 16),
+    "C_MAIN": (26, 14),
     "SJ_SERVO": (10, 30),
     "C_SERVO": (22, 28),
     "J_SERVO2": (24, 38),
@@ -40,37 +45,34 @@ PCB_PLACE: dict[str, tuple[float, float]] = {
     "J_LD2450": (8, 58),
     "J_OLED_EXT": (20, 58),
     "J_I2C": (32, 58),
-    "J_BTN": (70, 48),
-    "SW1": (78, 55),
-    "SW2": (86, 55),
-    "SW3": (94, 55),
-    "J_ENC": (80, 63),
-    "U2": (74, 24),
-    "C_AHCT": (82, 46),
-    "R_LED1": (88, 14),
-    "J_LED1": (104, 14),
-    "R_LED2": (88, 24),
-    "J_LED2": (104, 24),
-    "R_LED3": (88, 34),
-    "J_LED3": (104, 34),
-    "R_LED4": (88, 44),
-    "J_LED4": (104, 44),
-    "J_W5500": (98, 67),
+    "J_BTN": (70, 55),
+    "J_ENC": (84, 62),
+    "U2": (72, 24),
+    "C_AHCT": (80, 46),
+    "R_LED1": (86, 14),
+    "J_LED1": (106, 14),
+    "R_LED2": (86, 24),
+    "J_LED2": (106, 24),
+    "R_LED3": (86, 34),
+    "J_LED3": (106, 34),
+    "J_W5500": (100, 64),
 }
 
 W5500_MARGIN_MM = 5.0
+ESP_BOARD_W = 25.4
+ESP_BOARD_H = 52.5
 
 PCB_SILK: list[tuple[str, float, float, float]] = [
-    ("POWER IN 5V", 15, 10, 0.5),
-    ("SERVO POWER", 17, 26, 0.5),
-    ("SENSOR / DISPLAY", 22, 52, 0.5),
-    ("UI / BUTTONS", 70, 42, 0.45),
+    ("POWER IN 5V", 12, 10, 0.5),
+    ("SERVO POWER", 14, 26, 0.5),
+    ("SENSOR / DISPLAY", 20, 52, 0.5),
+    ("UI EXTERNAL", 72, 48, 0.45),
     ("LED OUTPUTS", 98, 10, 0.5),
-    ("LED4: AUX", 105, 47.5, 0.4),
-    ("ESP FOOTPRINT TBD", 38, 52, 0.4),
-    ("MEASURE BEFORE FAB", 38, 54, 0.4),
-    ("USR-ES1 / W5500 TBD", 102, 57, 0.38),
-    ("RJ45 TO EDGE", 108, 75.5, 0.38),
+    ("DevKitC-1 dims assumed", 8, 68, 0.35),
+    ("verify clone before fab", 8, 70.5, 0.35),
+    ("W5500 SBC-USR-ES1 TBD", 14, 6, 0.35),
+    ("measure header before fab", 14, 8.2, 0.32),
+    ("RJ45 TO EDGE", 115, 78, 0.38),
 ]
 
 PCB_ROTATE: dict[str, float] = {}
@@ -78,19 +80,20 @@ PCB_ROTATE: dict[str, float] = {}
 # Approximate (width, height) from footprint pad-1 origin for bounds checks.
 FOOTPRINT_EXTENTS: dict[str, tuple[float, float]] = {
     "carrier:M3_MountingHole": (6.0, 6.0),
-    "carrier:JST_VH_1x02_Placeholder": (5.0, 2.5),
+    "carrier:ScrewTerm_2p_5.08_Placeholder": (6.0, 4.0),
+    "carrier:ScrewTerm_3p_5.08_Placeholder": (11.0, 4.0),
     "carrier:JST_XH_1x03_Placeholder": (5.0, 2.5),
     "carrier:JST_XH_1x04_Placeholder": (7.5, 2.5),
     "carrier:JST_XH_1x05_Placeholder": (10.0, 2.5),
-    "carrier:JST_W5500_1x08_Placeholder": (17.5, 2.5),
-    "carrier:F_ESP_2x20_Placeholder": (22.86, 50.8),
+    # Placement bbox = header row only; 23×29 mm module outline in footprint (may overhang)
+    "carrier:W5500_SBC_USR_ES1_Placeholder": (23.0, 6.0),
+    # Placement bbox uses pin-row width (22.86); board outline 25.4 mm in footprint
+    "carrier:F_ESP_2x20_Placeholder": (22.86, ESP_BOARD_H),
     "carrier:SolderJumper_2_Bridged": (3.0, 2.0),
     "Package_DIP:DIP-14_W7.62mm": (7.62, 19.0),
     "Capacitor_THT:CP_Radial_D5.0mm_P2.50mm": (5.0, 5.0),
     "Capacitor_THT:C_Disc_D3mm_W2mm_Horizontal": (3.5, 3.5),
     "Resistor_THT:R_AXIAL-0.4_D5.1mm_L12.0mm_Horizontal": (12.0, 3.5),
-    "Button_Switch_THT:SW_PUSH_6mm": (6.0, 6.0),
-    "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical": (7.5, 4.0),
 }
 
 # Canonical GPIO map (ESP32-S3 N16R8 / DevKitC-1) — single source for docs + KiCad labels.
@@ -98,7 +101,6 @@ PINOUT: dict[str, int] = {
     "LED1": 18,
     "LED2": 17,
     "LED3": 21,
-    "LED4": 12,
     "I2C_SDA": 8,
     "I2C_SCL": 9,
     "LD_ESP_RX": 10,
@@ -229,7 +231,6 @@ def write_carrier_sym() -> None:
       (pin bidirectional line (at -17.78 22.86) (length 2.54) (name "GPIO18" (effects (font (size 1.016 1.016)))) (number "18" (effects (font (size 1.016 1.016)))))
       (pin bidirectional line (at -17.78 20.32) (length 2.54) (name "GPIO17" (effects (font (size 1.016 1.016)))) (number "17" (effects (font (size 1.016 1.016)))))
       (pin bidirectional line (at -17.78 17.78) (length 2.54) (name "GPIO21" (effects (font (size 1.016 1.016)))) (number "21" (effects (font (size 1.016 1.016)))))
-      (pin bidirectional line (at -17.78 15.24) (length 2.54) (name "GPIO12" (effects (font (size 1.016 1.016)))) (number "12" (effects (font (size 1.016 1.016)))))
       (pin bidirectional line (at -17.78 12.7) (length 2.54) (name "GPIO8" (effects (font (size 1.016 1.016)))) (number "8" (effects (font (size 1.016 1.016)))))
       (pin bidirectional line (at -17.78 10.16) (length 2.54) (name "GPIO9" (effects (font (size 1.016 1.016)))) (number "9" (effects (font (size 1.016 1.016)))))
       (pin bidirectional line (at -17.78 7.62) (length 2.54) (name "GPIO10" (effects (font (size 1.016 1.016)))) (number "10" (effects (font (size 1.016 1.016)))))
@@ -292,15 +293,16 @@ def write_footprints() -> None:
             encoding="utf-8",
         )
 
-    # Generate F_ESP footprint with all 40 pads
+    # F_ESP: Espressif DevKitC-1 official 25.4 x 52.5 mm, 22.86 mm row spacing (verify clone)
     lines = [
         '(footprint "F_ESP_2x20_Placeholder" (version 20240108) (generator "generate_placeholder.py")',
-        '  (descr "ESP32 DevKit 2x20 - row spacing 22.86mm - NOT FINAL")',
-        '  (tags "ESP32 DevKit")',
+        '  (descr "ESP32-S3 DevKitC-1 2x20 - 25.4x52.5mm 22.86 row - verify clone")',
+        '  (tags "ESP32 DevKit DevKitC-1")',
         "  (attr through_hole)",
-        '  (fp_text reference "F_ESP" (at 11.43 -4) (layer "F.SilkS")',
+        '  (fp_text reference "F_ESP" (at 12.7 -4) (layer "F.SilkS")',
         '    (effects (font (size 1 1) (thickness 0.15))))',
-        '  (fp_text value "F_ESP_2x20" (at 11.43 52) (layer "F.Fab") hide)',
+        '  (fp_text value "DevKitC-1_PLACEHOLDER" (at 12.7 54) (layer "F.Fab") hide)',
+        '  (fp_rect (start 0 0) (end 25.4 52.5) (stroke (width 0.12) (type default)) (fill none) (layer "Dwgs.User"))',
     ]
     for i in range(20):
         y = i * 2.54
@@ -362,21 +364,51 @@ def write_footprints() -> None:
     )
 
     fp(
-        "JST_W5500_1x08_Placeholder",
+        "W5500_SBC_USR_ES1_Placeholder",
         """
-  (descr "W5500 module 8p - OPTIONAL NOT POPULATED")
-  (tags "W5500 Ethernet")
+  (descr "SBC-USR-ES1 W5500 23x29mm module - header TBD - NOT POPULATED")
+  (tags "W5500 Ethernet USR-ES1")
   (attr through_hole)
-  (fp_text reference "J_W5500" (at 8.75 -4) (layer "F.SilkS") hide)
-  (fp_text value "W5500_OPT_NP" (at 8.75 4) (layer "F.Fab") hide)
-  (pad "1" thru_hole rect (at 0 0) (size 1.8 1.8) (drill 1.1) (layers "*.Cu" "*.Mask"))
-  (pad "2" thru_hole oval (at 2.5 0) (size 1.8 1.8) (drill 1.1) (layers "*.Cu" "*.Mask"))
-  (pad "3" thru_hole oval (at 5.0 0) (size 1.8 1.8) (drill 1.1) (layers "*.Cu" "*.Mask"))
-  (pad "4" thru_hole oval (at 7.5 0) (size 1.8 1.8) (drill 1.1) (layers "*.Cu" "*.Mask"))
-  (pad "5" thru_hole oval (at 10.0 0) (size 1.8 1.8) (drill 1.1) (layers "*.Cu" "*.Mask"))
-  (pad "6" thru_hole oval (at 12.5 0) (size 1.8 1.8) (drill 1.1) (layers "*.Cu" "*.Mask"))
-  (pad "7" thru_hole oval (at 15.0 0) (size 1.8 1.8) (drill 1.1) (layers "*.Cu" "*.Mask"))
-  (pad "8" thru_hole oval (at 17.5 0) (size 1.8 1.8) (drill 1.1) (layers "*.Cu" "*.Mask"))
+  (fp_text reference "J_W5500" (at 11.5 -5) (layer "F.SilkS") hide)
+  (fp_text value "W5500_OPT_NP" (at 11.5 32) (layer "F.Fab") hide)
+  (fp_rect (start 0 0) (end 23 29) (stroke (width 0.15) (type dash)) (fill none) (layer "Dwgs.User"))
+  (fp_text user "RJ45 -> board edge" (at 11.5 15) (layer "F.SilkS")
+    (effects (font (size 0.8 0.8) (thickness 0.1))))
+  (pad "1" thru_hole rect (at 5 0) (size 1.8 1.8) (drill 1.1) (layers "*.Cu" "*.Mask"))
+  (pad "2" thru_hole oval (at 7.5 0) (size 1.8 1.8) (drill 1.1) (layers "*.Cu" "*.Mask"))
+  (pad "3" thru_hole oval (at 10.0 0) (size 1.8 1.8) (drill 1.1) (layers "*.Cu" "*.Mask"))
+  (pad "4" thru_hole oval (at 12.5 0) (size 1.8 1.8) (drill 1.1) (layers "*.Cu" "*.Mask"))
+  (pad "5" thru_hole oval (at 15.0 0) (size 1.8 1.8) (drill 1.1) (layers "*.Cu" "*.Mask"))
+  (pad "6" thru_hole oval (at 17.5 0) (size 1.8 1.8) (drill 1.1) (layers "*.Cu" "*.Mask"))
+  (pad "7" thru_hole oval (at 20.0 0) (size 1.8 1.8) (drill 1.1) (layers "*.Cu" "*.Mask"))
+  (pad "8" thru_hole oval (at 22.5 0) (size 1.8 1.8) (drill 1.1) (layers "*.Cu" "*.Mask"))
+""",
+    )
+
+    fp(
+        "ScrewTerm_2p_5.08_Placeholder",
+        """
+  (descr "2-pin screw terminal 5.08mm pitch - main 5V in")
+  (tags "screw terminal power")
+  (attr through_hole)
+  (fp_text reference "J_MAIN" (at 2.54 -4) (layer "F.SilkS"))
+  (fp_text value "5V|GND" (at 2.54 4) (layer "F.Fab") hide)
+  (pad "1" thru_hole rect (at 0 0) (size 2.4 2.4) (drill 1.3) (layers "*.Cu" "*.Mask"))
+  (pad "2" thru_hole oval (at 5.08 0) (size 2.4 2.4) (drill 1.3) (layers "*.Cu" "*.Mask"))
+""",
+    )
+
+    fp(
+        "ScrewTerm_3p_5.08_Placeholder",
+        """
+  (descr "3-pin screw terminal 5.08mm - 5V GND DATA")
+  (tags "screw terminal LED")
+  (attr through_hole)
+  (fp_text reference "J" (at 5.08 -4) (layer "F.SilkS"))
+  (fp_text value "5V|GND|DATA" (at 5.08 4) (layer "F.Fab") hide)
+  (pad "1" thru_hole rect (at 0 0) (size 2.4 2.4) (drill 1.3) (layers "*.Cu" "*.Mask"))
+  (pad "2" thru_hole oval (at 5.08 0) (size 2.4 2.4) (drill 1.3) (layers "*.Cu" "*.Mask"))
+  (pad "3" thru_hole oval (at 10.16 0) (size 2.4 2.4) (drill 1.3) (layers "*.Cu" "*.Mask"))
 """,
     )
 
@@ -400,18 +432,6 @@ def write_footprints() -> None:
 """,
         )
 
-    fp(
-        "JST_VH_1x02_Placeholder",
-        """
-  (descr "JST-VH 2p main power placeholder 3.96mm pitch")
-  (tags "JST VH power")
-  (attr through_hole)
-  (fp_text reference "J_MAIN" (at 1.98 -4) (layer "F.SilkS"))
-  (fp_text value "5V_MAIN" (at 1.98 4) (layer "F.Fab") hide)
-  (pad "1" thru_hole rect (at 0 0) (size 2.0 2.0) (drill 1.2) (layers "*.Cu" "*.Mask"))
-  (pad "2" thru_hole oval (at 3.96 0) (size 2.0 2.0) (drill 1.2) (layers "*.Cu" "*.Mask"))
-""",
-    )
 
 
 def write_lib_tables() -> None:
@@ -750,7 +770,7 @@ def write_schematic() -> None:
 
     # --- Power section (left) ---
     px, py = 50, 40
-    b.sym("Connector:Conn_01x02_Pin", "J_MAIN", "5V_MAIN_IN", px, py, "carrier:JST_VH_1x02_Placeholder")
+    b.sym("Connector:Conn_01x02_Pin", "J_MAIN", "5V_MAIN_IN", px, py, "carrier:ScrewTerm_2p_5.08_Placeholder")
     b.wire(px - 2.54, py, px - 10, py)
     b.glabel("5V_MAIN", px - 10, py, 180)
     b.wire(px - 2.54, py + 2.54, px - 10, py + 2.54)
@@ -787,13 +807,12 @@ def write_schematic() -> None:
         ("LED1_IN", ex - 22, ey - 15),
         ("LED2_IN", ex - 22, ey - 12),
         ("LED3_IN", ex - 22, ey - 9),
-        ("LED4_IN", ex - 22, ey - 6),
-        ("I2C_SDA", ex - 22, ey - 3),
-        ("I2C_SCL", ex - 22, ey),
-        ("LD_ESP_RX", ex - 22, ey + 3),
-        ("LD_ESP_TX", ex - 22, ey + 6),
-        ("SERVO1_PWM", ex - 22, ey + 9),
-        ("SERVO2_PWM", ex - 22, ey + 12),
+        ("I2C_SDA", ex - 22, ey - 6),
+        ("I2C_SCL", ex - 22, ey - 3),
+        ("LD_ESP_RX", ex - 22, ey),
+        ("LD_ESP_TX", ex - 22, ey + 3),
+        ("SERVO1_PWM", ex - 22, ey + 6),
+        ("SERVO2_PWM", ex - 22, ey + 9),
         ("BTN1", ex + 22, ey - 15),
         ("BTN2", ex + 22, ey - 12),
         ("BTN3", ex + 22, ey - 9),
@@ -815,26 +834,28 @@ def write_schematic() -> None:
     b.sym("carrier:SN74AHCT125N", "U2", "SN74AHCT125N", ux, uy, "Package_DIP:DIP-14_W7.62mm")
     b.glabel("5V_LOGIC", ux, uy - 15, 90)
     b.glabel("GND", ux, uy + 18, 90)
-    # OE to GND
+    # ~OE pins 1, 4, 10, 13 → GND (ch4 DNP/NC — 4A/4Y not routed)
     for oy in [5.08, 0, -7.62, 7.62]:
-        b.wire(ux - 17.78, uy + oy / 2.54 * 2.54, ux - 25, uy + oy)
+        b.wire(ux - 17.78, uy + oy, ux - 25, uy + oy)
         b.glabel("GND", ux - 25, uy + oy, 180)
     b.glabel("LED1_IN", ux - 20, uy + 2, 180)
     b.glabel("LED2_IN", ux - 20, uy, 180)
     b.glabel("LED3_IN", ux - 20, uy - 2, 180)
-    b.glabel("LED4_IN", ux - 20, uy - 4, 180)
     b.glabel("LED1_DATA", ux + 20, uy + 2, 0)
     b.glabel("LED2_DATA", ux + 20, uy, 0)
     b.glabel("LED3_DATA", ux + 20, uy - 2, 0)
-    b.glabel("LED4_DATA", ux + 20, uy - 4, 0)
+    b.items.append(
+        f'  (text "U2 ch4 (4A/4Y) DNP — NC\\nGPIO12 free on DevKit"'
+        f"\n    (at {ux} {uy - 18} 0) (effects (font (size 1.0 1.0)) (justify left)) (uuid {uid()}))\n"
+    )
 
     b.sym("Device:C", "C_AHCT", "100nF", ux + 15, uy + 20, "Capacitor_THT:C_Disc_D3mm_W2mm_Horizontal")
     b.glabel("5V_LOGIC", ux + 10, uy + 18, 180)
     b.glabel("GND", ux + 10, uy + 22, 180)
 
-    # --- LED chain ---
+    # --- LED outputs (×3, screw terminal 5.08 mm) ---
     lx, ly = 220, 40
-    for i in range(1, 5):
+    for i in range(1, 4):
         b.sym("Device:R", f"R_LED{i}", "330", lx + (i - 1) * 25, ly, "Resistor_THT:R_AXIAL-0.4_D5.1mm_L12.0mm_Horizontal")
         b.glabel(f"LED{i}_DATA", lx + (i - 1) * 25 - 8, ly, 180)
         b.sym(
@@ -843,7 +864,7 @@ def write_schematic() -> None:
             f"LED{i} 5V|GND|DATA",
             lx + (i - 1) * 25,
             ly + 12,
-            "carrier:JST_XH_1x03_Placeholder",
+            "carrier:ScrewTerm_3p_5.08_Placeholder",
         )
         b.glabel("5V_LED", lx + (i - 1) * 25 - 8, ly + 10, 180)
         b.glabel("GND", lx + (i - 1) * 25 - 8, ly + 14, 180)
@@ -873,19 +894,16 @@ def write_schematic() -> None:
     # --- OLED / I2C ---
     b.sym("Connector:Conn_01x04_Pin", "J_OLED_EXT", "OLED_EXT", 270, 120, "carrier:JST_XH_1x04_Placeholder")
     b.sym("Connector:Conn_01x04_Pin", "J_I2C", "I2C_EXT", 270, 140, "carrier:JST_XH_1x04_Placeholder")
-    b.sym("Connector:Conn_01x04_Pin", "F_OLED", "OLED_DIRECT", 300, 120, "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical")
     for lbl, yy in [("GND", 118), ("3V3", 122), ("I2C_SDA", 126), ("I2C_SCL", 130)]:
         b.glabel(lbl, 260, yy, 180)
 
-    # --- Buttons ---
+    # --- UI external only (no on-board tact / encoder) ---
     bx, by = 50, 140
     b.sym("Connector:Conn_01x04_Pin", "J_BTN", "BTN_EXT", bx, by, "carrier:JST_XH_1x04_Placeholder")
     for i in range(1, 4):
-        b.sym("Switch:SW_Push", f"SW{i}", f"BTN{i}", bx + 30 + i * 12, by, "Button_Switch_THT:SW_PUSH_6mm")
-        b.glabel(f"BTN{i}", bx + 20 + i * 12, by, 180)
-        b.glabel("GND", bx + 20 + i * 12, by + 5, 180)
+        b.glabel(f"BTN{i}", bx - 10, by + (i - 1) * 2.54, 180)
+    b.glabel("GND", bx - 10, by + 8, 180)
 
-    # --- Encoder ---
     b.sym("Connector:Conn_01x05_Pin", "J_ENC", "ENC_EXT", 50, 165, "carrier:JST_XH_1x05_Placeholder")
     b.glabel("ENC_CLK", 40, 163, 180)
     b.glabel("ENC_DT", 40, 166, 180)
@@ -899,7 +917,7 @@ def write_schematic() -> None:
         "W5500_OPTIONAL_NP",
         wx,
         wy,
-        "carrier:JST_W5500_1x08_Placeholder",
+        "carrier:W5500_SBC_USR_ES1_Placeholder",
     )
     w5500_pins = [
         ("3V3", 0),
@@ -914,9 +932,9 @@ def write_schematic() -> None:
     for net, dy in w5500_pins:
         b.glabel(net, wx - 12, wy + dy, 180)
     w5500_note = (
-        "W5500 OPTIONAL / NOT POPULATED\\n"
-        "Bedrade module voor toekomstige Art-Net/sACN route\\n"
-        "SPI: GPIO5/13/14 CS47 RST4 INT39 (zie pinout-table.md)"
+        "SBC-USR-ES1 W5500 OPTIONAL / NOT POPULATED\\n"
+        "Module 23x29mm — header TBD, measure before fab\\n"
+        "RJ45 toward board edge · SPI GPIO5/13/14/47/4/39"
     )
     b.items.append(
         f'  (text "{w5500_note}"\n'
@@ -925,8 +943,8 @@ def write_schematic() -> None:
 
     # Notes
     b.items.append(
-        f'  (text "PLACEHOLDER SCHEMATIC v0.8 - run ERC in KiCad\\n'
-        f"ESP32 footprint NOT FINAL - see measurements.md\\n"
+        f'  (text "PLACEHOLDER SCHEMATIC v0.9 phase2 - run ERC in KiCad\\n'
+        f"DevKitC-1 dims assumed — verify clone (measurements.md)\\n"
         f'Do NOT order PCB / no Gerbers"\n'
         f"    (at 30 30 0) (effects (font (size 1.5 1.5)) (justify left)) (uuid {uid()}))\n"
     )
@@ -941,9 +959,7 @@ def _pcb_gr_text(text: str, x: float, y: float, size: float = 0.8, layer: str = 
     )
 
 
-EDGE_CONNECTOR_REFS = frozenset(
-    {"J_LED1", "J_LED2", "J_LED3", "J_LED4", "J_MAIN", "J_W5500"}
-)
+EDGE_CONNECTOR_REFS = frozenset({"J_LED1", "J_LED2", "J_LED3", "J_MAIN", "J_W5500"})
 
 
 def verify_pcb_layout(placements: list[tuple[str, str, str, float, float]]) -> None:
@@ -1045,8 +1061,6 @@ def write_pcb() -> None:
         "LED2_DATA",
         "LED3_IN",
         "LED3_DATA",
-        "LED4_IN",
-        "LED4_DATA",
         "I2C_SDA",
         "I2C_SCL",
         "LD_ESP_RX",
@@ -1100,17 +1114,19 @@ def write_pcb() -> None:
     )
 
     esp_x, esp_y = PCB_PLACE["F_ESP"]
-    esp_w, esp_h = FOOTPRINT_EXTENTS["carrier:F_ESP_2x20_Placeholder"]
+    esp_h = FOOTPRINT_EXTENTS["carrier:F_ESP_2x20_Placeholder"][1]
+    esp_w = ESP_BOARD_W
     usb_y0, usb_y1 = esp_y, esp_y + 6.0
     ant_y0, ant_y1 = esp_y + esp_h - 6.0, esp_y + esp_h
     w5500_x, w5500_y = PCB_PLACE["J_W5500"]
-    w5500_w, w5500_h = FOOTPRINT_EXTENTS["carrier:JST_W5500_1x08_Placeholder"]
+    w5500_mod_w, w5500_mod_h = 23.0, 29.0
+    w5500_hdr_w, w5500_hdr_h = FOOTPRINT_EXTENTS["carrier:W5500_SBC_USR_ES1_Placeholder"]
     m = W5500_MARGIN_MM
     w5500_margin = (
         w5500_x - m,
         w5500_y - m,
-        w5500_x + w5500_w + m,
-        w5500_y + w5500_h + m,
+        w5500_x + w5500_hdr_w + m,
+        w5500_y + w5500_hdr_h + m,
     )
     keepouts = [
         (esp_x + 2, usb_y0, esp_x + esp_w - 2, usb_y1),
@@ -1128,6 +1144,8 @@ def write_pcb() -> None:
     (stroke (width 0.1) (type dash)) (fill none) (layer "Dwgs.User") (tstamp 0))
   (gr_rect (start {w5500_margin[0]} {w5500_margin[1]}) (end {w5500_margin[2]} {w5500_margin[3]})
     (stroke (width 0.1) (type dash)) (fill none) (layer "Dwgs.User") (tstamp 0))
+  (gr_rect (start {w5500_x} {w5500_y}) (end {w5500_x + w5500_mod_w} {w5500_y + w5500_mod_h})
+    (stroke (width 0.1) (type dash)) (fill none) (layer "Dwgs.User") (tstamp 0))
 """
     )
 
@@ -1139,32 +1157,27 @@ def write_pcb() -> None:
         ("H2", "M3", "carrier:M3_MountingHole"),
         ("H3", "M3", "carrier:M3_MountingHole"),
         ("H4", "M3", "carrier:M3_MountingHole"),
-        ("J_MAIN", "5V_MAIN_IN", "carrier:JST_VH_1x02_Placeholder"),
+        ("J_MAIN", "5V_MAIN_IN", "carrier:ScrewTerm_2p_5.08_Placeholder"),
         ("C_MAIN", "1000uF", "Capacitor_THT:CP_Radial_D5.0mm_P2.50mm"),
         ("F_ESP", "ESP32_2x20", "carrier:F_ESP_2x20_Placeholder"),
         ("U2", "SN74AHCT125N", "Package_DIP:DIP-14_W7.62mm"),
         ("C_AHCT", "100nF", "Capacitor_THT:C_Disc_D3mm_W2mm_Horizontal"),
         ("R_LED1", "330", "Resistor_THT:R_AXIAL-0.4_D5.1mm_L12.0mm_Horizontal"),
-        ("J_LED1", "LED1", "carrier:JST_XH_1x03_Placeholder"),
+        ("J_LED1", "LED1", "carrier:ScrewTerm_3p_5.08_Placeholder"),
         ("R_LED2", "330", "Resistor_THT:R_AXIAL-0.4_D5.1mm_L12.0mm_Horizontal"),
-        ("J_LED2", "LED2", "carrier:JST_XH_1x03_Placeholder"),
+        ("J_LED2", "LED2", "carrier:ScrewTerm_3p_5.08_Placeholder"),
         ("R_LED3", "330", "Resistor_THT:R_AXIAL-0.4_D5.1mm_L12.0mm_Horizontal"),
-        ("J_LED3", "LED3", "carrier:JST_XH_1x03_Placeholder"),
-        ("R_LED4", "330", "Resistor_THT:R_AXIAL-0.4_D5.1mm_L12.0mm_Horizontal"),
-        ("J_LED4", "LED4_AUX", "carrier:JST_XH_1x03_Placeholder"),
+        ("J_LED3", "LED3", "carrier:ScrewTerm_3p_5.08_Placeholder"),
         ("J_LD2450", "LD2450", "carrier:JST_XH_1x04_Placeholder"),
         ("J_OLED_EXT", "OLED", "carrier:JST_XH_1x04_Placeholder"),
         ("J_I2C", "I2C", "carrier:JST_XH_1x04_Placeholder"),
         ("J_BTN", "BTN_EXT", "carrier:JST_XH_1x04_Placeholder"),
-        ("SW1", "BTN1", "Button_Switch_THT:SW_PUSH_6mm"),
-        ("SW2", "BTN2", "Button_Switch_THT:SW_PUSH_6mm"),
-        ("SW3", "BTN3", "Button_Switch_THT:SW_PUSH_6mm"),
         ("J_ENC", "ENC", "carrier:JST_XH_1x05_Placeholder"),
         ("SJ_SERVO", "SJ_SERVO", "carrier:SolderJumper_2_Bridged"),
         ("C_SERVO", "2200uF", "Capacitor_THT:CP_Radial_D5.0mm_P2.50mm"),
         ("J_SERVO1", "SERVO1", "carrier:JST_XH_1x03_Placeholder"),
         ("J_SERVO2", "SERVO2", "carrier:JST_XH_1x03_Placeholder"),
-        ("J_W5500", "W5500_OPT_NP", "carrier:JST_W5500_1x08_Placeholder"),
+        ("J_W5500", "W5500_OPT_NP", "carrier:W5500_SBC_USR_ES1_Placeholder"),
     ]
     placements = []
     for ref, val, libfp in placement_specs:
@@ -1180,7 +1193,7 @@ def write_pcb() -> None:
     fpmap = {ref: libfp for ref, _val, libfp, _x, _y in placements}
     net_ids = {name: i for i, name in enumerate(nets)}
     items.append(
-        build_led_data_routing(PCB_PLACE, PCB_ROTATE, fpmap, net_ids)
+        build_placeholder_routing(PCB_PLACE, PCB_ROTATE, fpmap, net_ids)
     )
 
     pcb = f"""(kicad_pcb (version 20240108) (generator "generate_placeholder.py")
@@ -1272,7 +1285,7 @@ Open in KiCad:
 |---|---|
 | `esp32-s3-utility-carrier.kicad_pro` | Project root |
 | `esp32-s3-utility-carrier.kicad_sch` | Placeholder schematic |
-| `esp32-s3-utility-carrier.kicad_pcb` | Placeholder PCB (130×85 mm, v0.8 LED-data routing) |
+| `esp32-s3-utility-carrier.kicad_pcb` | Placeholder PCB (130×85 mm, v0.9 phase2 routing) |
 | `libraries/carrier.kicad_sym` | F_ESP, SN74AHCT125N, SJ_SERVO |
 | `libraries/carrier.pretty/` | Placeholder footprints |
 
@@ -1311,6 +1324,17 @@ def verify_pinout() -> None:
         raise RuntimeError(f"PINOUT uses forbidden GPIO: {sorted(overlap)}")
     if len(used) != len(PINOUT):
         raise RuntimeError("PINOUT has duplicate GPIO assignments")
+    if "LED4" in PINOUT:
+        raise RuntimeError("PINOUT must not include LED4 / GPIO12")
+
+
+def verify_phase2_outputs(pcb_text: str, sch_text: str) -> None:
+    for ref in FORBIDDEN_REFS:
+        if f'"{ref}"' in pcb_text or f'Reference" "{ref}"' in sch_text:
+            raise RuntimeError(f"Phase 2 forbidden ref still present: {ref}")
+    for net in FORBIDDEN_NETS:
+        if f'"{net}"' in pcb_text or f'"{net}"' in sch_text:
+            raise RuntimeError(f"Phase 2 forbidden net still present: {net}")
 
 
 def main() -> None:
@@ -1325,13 +1349,17 @@ def main() -> None:
     write_readme_kicad()
     verify_pin_orientations()
     verify_schematic_layout(ROOT / f"{PROJECT}.kicad_sch")
-    text = (ROOT / f"{PROJECT}.kicad_pcb").read_text(encoding="utf-8")
+    pcb_path = ROOT / f"{PROJECT}.kicad_pcb"
+    sch_path = ROOT / f"{PROJECT}.kicad_sch"
+    text = pcb_path.read_text(encoding="utf-8")
+    sch_text = sch_path.read_text(encoding="utf-8")
+    verify_phase2_outputs(text, sch_text)
     if "(justify center)" in text:
         raise RuntimeError("PCB still contains invalid (justify center)")
     if re.search(r"\(zone\b", text):
         raise RuntimeError("PCB must not contain copper pour zones")
     if not re.search(r"\(segment\b", text):
-        raise RuntimeError("PCB expected LED data routing segments (v0.8)")
+        raise RuntimeError("PCB expected placeholder routing segments")
     print(f"Generated KiCad placeholder in {ROOT} ({BOARD_W}x{BOARD_H} mm)")
 
 

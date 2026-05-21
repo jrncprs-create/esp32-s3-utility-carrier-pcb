@@ -1,8 +1,8 @@
 # Technische specificatie — ESP32-S3 Utility Carrier PCB v1
 
-Versie: **0.2 (placeholder)**  
+Versie: **0.9 phase 2 (placeholder)**  
 Datum: 2026-05-21  
-Status: **GEEN productie-PCB** · **GEEN Gerbers** · ESP32-footprint **VOORLOPIG** (Espressif-ref = diymore B0F3XMYYQY; [meting later](../hardware/measurements.md))
+Status: **GEEN productie-PCB** · **GEEN Gerbers** · DevKitC-1 **25,4×52,5 mm** assumed — [verify clone](../hardware/measurements.md)
 
 ---
 
@@ -13,12 +13,12 @@ Status: **GEEN productie-PCB** · **GEEN Gerbers** · ESP32-footprint **VOORLOPI
 Soldeerbare **carrier-PCB** voor een **ESP32-S3 DevKit** (plug-in via twee pin-headers), bedoeld voor interactieve installaties met:
 
 - 1× 5 V hoofdvoeding
-- 3× levelshifted LED/data-uitgangen (5 V)
+- 3× levelshifted LED/data-uitgangen (5 V, schroefklem)
 - 2× servo-uitgangen
 - 1× HLK-LD2450 UART-sensorpoort
 - SH1106 I2C OLED (direct + extern)
-- 3× drukknoppen
-- EC11 rotary encoder (detents + push)
+- 3× drukknoppen (alleen via J_BTN extern)
+- EC11 rotary encoder (alleen via J_ENC extern)
 - Extra GPIO / I2C / power pads + klein proto-vak
 
 ### 1.2 Buiten scope v1
@@ -34,7 +34,7 @@ Soldeerbare **carrier-PCB** voor een **ESP32-S3 DevKit** (plug-in via twee pin-h
 |---|---|
 | Referentie | [Espressif ESP32-S3-DevKitC-1 v1.1](https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32s3/esp32-s3-devkitc-1/user_guide_v1.1.html) |
 | Gebruikersboard | diymore / Amazon clone, ESP32-S3-WROOM-1-**N16R8** (vermoedelijk) |
-| Footprint carrier | 2× 1×20 @ **2,54 mm**, rij **22,86 mm** — **VOORLOPIG** (zie `hardware/measurements.md`) |
+| Footprint carrier | 2× 1×20 @ **2,54 mm**, rij **22,86 mm**, PCB **25,4×52,5 mm** — Espressif official (verify clone) |
 | USB | DevKit USB-C moet aan **rand carrier** bereikbaar blijven (beide poorten indien aanwezig) |
 
 ---
@@ -44,16 +44,16 @@ Soldeerbare **carrier-PCB** voor een **ESP32-S3 DevKit** (plug-in via twee pin-h
 ### 2.1 Voeding (blokdiagram)
 
 ```text
-[J_MAIN 5V] ──► (F_MAIN optioneel) ──► 5V_MAIN bus
+[J_MAIN 5V schroefklem] ──► 5V_MAIN ──► C_MAIN
                       │
         ┌─────────────┼─────────────┬──────────────┐
         ▼             ▼             ▼              ▼
    5V_LOGIC      5V_LED       SJ_SERVO ──► 5V_SERVO
-   (ESP32 VIN,   (LED JST,     (solder       (servo JST,
-    AHCT125,      AHCT VCC)     jumper)       dikke sporen)
-    LD2450 5V)
+   (ESP VIN,     (LED ×3      (jumper)      (servo JST)
+    AHCT,        schroefklem)
+    LD2450)
         │
-        └──► ESP32 onboard 3V3 LDO ──► 3V3_LOGIC (OLED, I2C, encoder 3V3)
+        └──► DevKit 3V3 ──► 3V3 (OLED, I2C, J_ENC, W5500 opt.)
 ```
 
 ### 2.2 Rails
@@ -65,15 +65,14 @@ Soldeerbare **carrier-PCB** voor een **ESP32-S3 DevKit** (plug-in via twee pin-h
 | **5V_LED** | 5V_MAIN | LED JST pin 5V (×3) | Kan viazelfde pour als MAIN; logisch gescheiden label |
 | **5V_SERVO** | 5V_MAIN via **SJ_SERVO** | Servo JST 5V (×2) | Standaard **gesloten** jumper; openen = servo extern voeden |
 | **3V3_LOGIC** | DevKit header 3V3 | OLED, I2C, encoder 3V3 | Geen eigen LDO op carrier v1 |
-| **GND** | Common | Alles | Star-point bij J_MAIN + pour |
+| **GND** | Common | Alles | Star bij J_MAIN; **geen** board-wide GND-pour in placeholder |
 
 ### 2.3 Hoofdvoeding connector (besluit v1)
 
 | Prioriteit | Connector | Reden |
 |---|---|---|
-| **Primair** | **JST-VH 2-pin** (3,96 mm) of **schroefklem 2-pin 5,08 mm** | Hogere stroom, robuuster voor servo+LED |
-| **Parallel** | Grote **solder pads** 5V + GND | Noodvoeding / dikke draden |
-| **Secundair (optioneel)** | JST-XH 2-pin | Alleen met label *≤ ~2 A totaal* |
+| **Primair** | **Schroefklem 2-pin 5,08 mm** (J_MAIN) | 5V/GND — geen polyfuse |
+| **Parallel** | Grote **solder pads** 5V + GND | Optioneel in latere rev |
 
 ### 2.4 Condensatoren en bescherming
 
@@ -83,7 +82,6 @@ Soldeerbare **carrier-PCB** voor een **ESP32-S3 DevKit** (plug-in via twee pin-h
 | C_SERVO | 1000–2200 µF / ≥10 V elco | bij J_SERVO1/2 | **Aanbevolen verplicht** bij servo's |
 | C_AHCT | 100 nF keramisch | direct bij U2 VCC–GND | **Verplicht** |
 | C_LD / C_OLED | 100 nF | bij 4-pin headers | Optioneel |
-| F_MAIN | PTC of fuse-link footprint | in 5V_MAIN | Optioneel |
 | SJ_SERVO | 2-pad solder jumper | tussen 5V_MAIN en 5V_SERVO | **Verplicht footprint** |
 
 ### 2.5 Stroombudget (conservatief ontwerp)
@@ -103,13 +101,12 @@ Soldeerbare **carrier-PCB** voor een **ESP32-S3 DevKit** (plug-in via twee pin-h
 
 ## 3. Functionele blokken
 
-### 3.1 LED / data (×4: 3 actief + 1 AUX)
+### 3.1 LED / data (×3)
 
-- **U2:** SN74AHCT125N (DIP-14), VCC = 5V, GND common.
-- **~OE1–4:** pins **1, 4, 10, 13** → **GND** (outputs altijd enabled).
-- Signaalpad: `ESP32 GPIO` → `AHCT Ax` → `AHCT Yx` → `Rx 330 Ω` → `J_LEDx DATA`.
-- **GPIO:** OUT1=**18**, OUT2=**17**, OUT3=**21** (3× actieve buizen), OUT4/AUX=**12** (reserve).
-- Alle vier kanalen naar **J_LED1..J_LED4** (JST-XH 3p).
+- **U2:** SN74AHCT125N (DIP-14), VCC = 5V.
+- **~OE1–4:** pins **1, 4, 10, 13** → **GND**; **kanaal 4 (4A/4Y) DNP/NC** — niet gerouteerd.
+- **GPIO:** OUT1=**18**, OUT2=**17**, OUT3=**21** → R 330 Ω → **J_LED1..3** (schroefklem 3p 5,08 mm: 5V/GND/DATA).
+- **GPIO12:** vrij op DevKit — niet als LED4/AUX.
 
 ### 3.2 Servo (×2)
 
@@ -127,23 +124,22 @@ Soldeerbare **carrier-PCB** voor een **ESP32-S3 DevKit** (plug-in via twee pin-h
 
 - I2C: **SDA=GPIO8**, **SCL=GPIO9**.
 - **J_OLED_EXT** 4-pin: GND, 3V3, SDA, SCL.
-- **F_OLED** footprint: 1×4 of 1×4+1 pin header voor direct montage (0,96" OLED pin spacing controleren bij KiCad — typ. 2,54 mm).
+- Alleen **J_OLED_EXT** — geen direct-mount **F_OLED**.
 
-### 3.5 Knoppen (×3)
+### 3.5 Knoppen (×3, extern)
 
-- Active-low naar GND; firmware: `INPUT_PULLUP`.
-- On-board tactile footprints + **J_BTN** 4-pin: GND | BTN1 | BTN2 | BTN3.
-- GPIO: **1, 2, 42**.
+- **J_BTN** 4-pin: GND | BTN1 | BTN2 | BTN3; GPIO **1, 2, 42**.
+- Geen on-board tact switches (SW1–3 verwijderd).
 
-### 3.6 EC11 rotary encoder
+### 3.6 EC11 rotary encoder (extern)
 
-- On-board EC11 footprint + **J_ENC** 5-pin: GND | 3V3 | CLK | DT | SW.
-- GPIO: **CLK=6**, **DT=7**, **SW=40**.
-- Pull-ups: firmware internal; optionele **10 kΩ** footprints naar 3V3 (DNP default).
+- **J_ENC** 5-pin: GND | 3V3 | CLK | DT | SW; GPIO **6, 7, 40**.
+- Geen on-board EC11 footprint.
 
-### 3.7 Optionele W5500 Ethernet (NOT POPULATED)
+### 3.7 Optionele W5500 — SBC-USR-ES1 (NOT POPULATED)
 
-- **J_W5500** 8-pin JST-XH placeholder: **3V3 | GND | SPI_SCK | SPI_MOSI | SPI_MISO | ETH_CS | ETH_RST | ETH_INT**.
+- Module **23×29×24 mm**; **3V3**; header **TBD** (meet vóór fab).
+- **J_W5500** 8-pin placeholder: SPI + CS/RST/INT.
 - **GPIO (v0.2):** SCK=**5**, MOSI=**13**, MISO=**14**, CS=**47**, RST=**4**, INT=**39**.
 - Bedoeld voor **bedrade** W5500-module (geen SMD PHY op carrier v0.2).
 - Silk/value: **W5500 OPTIONAL / NOT POPULATED** — geen module in BOM.
@@ -167,7 +163,8 @@ Soldeerbare **carrier-PCB** voor een **ESP32-S3 DevKit** (plug-in via twee pin-h
 | Onboard RGB (DevKit v1.1) | 38 | **Niet gebruiken** |
 | Strapping | 0, 3, 45, 46 | **Niet gebruiken** |
 | DevKit LED (typ.) | 48 | **Niet gebruiken** |
-| LED data | 18, 17, 21, 12 | Gebruikt (12 = AUX) |
+| LED data | 18, 17, 21 | Gebruikt (×3) |
+| GPIO12 | — | **Vrij** (geen LED4) |
 | I2C | 8, 9 | Gebruikt |
 | Servo PWM | 15, 16 | Gebruikt |
 | LD2450 UART | 10, 11 | Gebruikt |

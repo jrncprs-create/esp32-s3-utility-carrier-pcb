@@ -72,7 +72,7 @@ Reserveer extra lengte t.o.v. 62,74 mm voor USB-C keep-out tot B8/B9 gemeten zij
 |---|---|
 | USB-kant op carrier-rand | Nog te kiezen na B8/B9 meting |
 | Min. clearance USB plug | **12 mm** conservatief tot gemeten |
-| Max. carrier board (start) | **~90 × 65 mm** (aanpasbaar) |
+| Max. carrier board (v0.9) | **130 × 85 mm** |
 | M3 gatpatroon | 4 hoeken, 3,2 mm boring (afstand na behuizing) |
 
 ---

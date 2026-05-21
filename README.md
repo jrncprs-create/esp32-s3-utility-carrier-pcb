@@ -2,8 +2,8 @@
 
 Doel: een soldeerbare carrier-PCB voor een ESP32-S3 DevKit, bedoeld voor kleine interactieve installaties met LED-data, servo's, HLK-LD2450 mmWave sensor, SH1106 OLED-display, knoppen en rotary encoder.
 
-**Documentatieversie:** 0.8 (placeholder)  
-**Status:** KiCad placeholder v0.8 · **LED-data routing only** · **nog niet productieklaar** · **geen Gerbers** · ESP32-footprint blijft **NIET DEFINITIEF** (meting later · [diymore B0F3XMYYQY](https://www.amazon.nl/-/en/diymore-DevKitC-1-S3-1-N16R8-development-connectable/dp/B0F3XMYYQY))
+**Documentatieversie:** 0.9 phase 2  
+**Status:** KiCad placeholder v0.9 · **3× LED + limited power routing** · **nog niet productieklaar** · **geen Gerbers** · DevKitC-1 **25,4×52,5 mm assumed** — [verify clone](hardware/measurements.md)
 
 ## Documentatie-index
 
@@ -23,19 +23,21 @@ Doel: een soldeerbare carrier-PCB voor een ESP32-S3 DevKit, bedoeld voor kleine 
 | [hardware/measurements.md](hardware/measurements.md) | **Werkplaats meetformulier** |
 | [docs/pcb-briefing.md](docs/pcb-briefing.md) | Oorspronkelijke briefing (archief) |
 
-## Belangrijkste ontwerpkeuzes (v0.8)
+## Belangrijkste ontwerpkeuzes (v0.9 phase 2)
 
 - ESP32-S3 DevKit blijft los module met eigen USB-C.
-- Eén **5V MAIN IN** — primair **JST-VH** of schroefklem; JST-XH alleen secundair met stroomlimiet.
-- Interne rails: `5V_LOGIC`, `5V_LED`, `5V_SERVO` (via **SJ_SERVO** vanaf MAIN).
-- LED-data: **4×** ESP32 GPIO → **SN74AHCT125N** (4 kanalen) → 330 Ω → JST-XH 3p — **3 actief** (GPIO18/17/21) + **1 AUX** (GPIO12).
-- Alle AHCT **~OE** (pins 1, 4, 10, 13) → GND.
+- **J_MAIN:** schroefklem 2p **5,08 mm** (5V/GND) — **geen** polyfuse/F_MAIN.
+- LED: **3×** GPIO18/17/21 → **SN74AHCT125N** (ch4 DNP) → 330 Ω → schroefklem 3p; **GPIO12 vrij**.
+- UI: alleen **J_BTN** + **J_ENC** (geen SW1–3, geen on-board encoder).
+- OLED: **J_OLED_EXT** alleen (geen F_OLED).
+- W5500: **SBC-USR-ES1** placeholder 23×29 mm, header TBD, RJ45 naar rand.
+- Placeholder routing: LED-data + J_MAIN→C_MAIN + korte 5V (geen board-wide GND-bussen).
 - LD2450: UART op **GPIO10/11**, niet op UART0 (43/44).
 - I2C OLED: **GPIO8/9**.
 - **Optionele W5500** header **J_W5500** (8p): 3V3, GND, SPI + CS/RST/INT op **GPIO5/13/14/47/4/39** — **NOT POPULATED**, voor toekomstige bedrade Ethernet/Art-Net route.
 - Pinout conflict-check: zie [hardware/pinout-table.md](hardware/pinout-table.md).
-- Connectorfamilie signaal: **JST-XH 2,54 mm** through-hole waar mogelijk.
-- PCB placeholder **130 × 85 mm**, **6-zone layout** (geen zone-vlakken; ESP keep-outs alleen), **4× M3**, airwires only — **geen** definitieve routing.
+- Signaalconnectors: **JST-XH**; hoofdvoeding + LED: **schroefklem 5,08 mm**.
+- PCB **130 × 85 mm**, placement phase 2; sensor/servo/UI/W5500 nog ratsnest.
 
 ## Werkwijze
 

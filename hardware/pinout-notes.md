@@ -2,17 +2,18 @@
 
 Volledige tabel: **[hardware/pinout-table.md](pinout-table.md)**
 
-## Voorlopige toewijzing v0.9
+## Toewijzing v0.9 phase 2
 
 | Functie | GPIO |
 |---|---|
-| LED OUT 1–3 | 18, 17, 21 (via 74AHCT125) |
+| LED OUT 1–3 | 18, 17, 21 (via 74AHCT125; ch4 DNP) |
 | I2C SDA / SCL | 8, 9 |
 | LD2450 UART | 10 (RX), 11 (TX) |
 | Servo PWM | 15, 16 |
-| Knoppen | 1, 2, 42 |
-| Encoder CLK / DT / SW | 6, 7, 40 |
-| Extra GPIO | 12, 13, 14, 47 |
+| Knoppen (J_BTN) | 1, 2, 42 |
+| Encoder (J_ENC) | 6, 7, 40 |
+| W5500 SPI (optioneel) | 5, 13, 14, 47, 4, 39 |
+| **Vrij** | **12** (geen LED4) |
 
 ## Vermijden (verboden op carrier)
 
@@ -27,7 +28,7 @@ Volledige tabel: **[hardware/pinout-table.md](pinout-table.md)**
 
 ## 74AHCT125
 
-- VCC = 5 V; **~OE pins 1, 4, 10, 13 → GND**.
+- VCC = 5 V; **~OE → GND**; kanalen 1–3 actief; **kanaal 4 DNP/NC**.
 - Zie [hardware/schematic-netlist.md](schematic-netlist.md).
 
 ## Footprint

@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+## [0.9.0] — 2026-05-21 (phase 2)
+
+### Changed
+
+- Simplify carrier: **3 LED outputs** (schroefklem 5,08 mm), remove LED4/GPIO12 route.
+- **J_MAIN** schroefklem 5,08 mm; remove **F_MAIN** / polyfuse from BOM, schematic, layout.
+- Remove **SW1–3**, **F_OLED**, on-board encoder; keep **J_BTN** / **J_ENC** external only.
+- **F_ESP** uses Espressif DevKitC-1 **25,4×52,5 mm** (22,86 mm row); verify-clone silk.
+- **J_W5500** → SBC-USR-ES1 **23×29 mm** placeholder; header TBD.
+- Phase 2 **PCB_PLACE** table; `pcb_routing.py`: 3× LED + limited power (no GND pour).
+- U2 channel 4 documented DNP/NC in schematic.
+
+### Removed
+
+- J_LED4, R_LED4, F_MAIN, SW1–3, F_OLED, ENC1 footprint from generator outputs.
+
 ## [0.8.0] — 2026-05-21
 
 ### Changed
