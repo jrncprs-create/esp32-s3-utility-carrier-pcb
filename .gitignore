@@ -1,2 +1,23 @@
 .DS_Store
 __MACOSX/
+
+# KiCad local/cache (never commit fabrication output)
+*-backups
+*-save.kicad_pcb
+*-save.kicad_sch
+*.kicad_prl
+fp-info-cache
+*.lck
+*.gbr
+*.gbrjob
+*.drl
+*.nc
+*.gtp
+*.gbp
+*.gts
+*.gbs
+*.gm1
+*.csv
+production/
+fabrication-output/
+__pycache__/

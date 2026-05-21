@@ -2,8 +2,8 @@
 
 Doel: een soldeerbare carrier-PCB voor een ESP32-S3 DevKit, bedoeld voor kleine interactieve installaties met LED-data, servo's, HLK-LD2450 mmWave sensor, SH1106 OLED-display, knoppen en rotary encoder.
 
-**Documentatieversie:** 0.9.1 (voorbereiding)  
-**Status:** specificatie compleet · **geen KiCad/Gerber-productie** · ESP32-footprint **VOORLOPIG** (Espressif-ref = [diymore B0F3XMYYQY](https://www.amazon.nl/-/en/diymore-DevKitC-1-S3-1-N16R8-development-connectable/dp/B0F3XMYYQY), meting later)
+**Documentatieversie:** 0.9.2 (voorbereiding)  
+**Status:** KiCad placeholder project aangemaakt · **nog niet productieklaar** · **geen Gerbers** · ESP32-footprint blijft **NIET DEFINITIEF** (meting later · [diymore B0F3XMYYQY](https://www.amazon.nl/-/en/diymore-DevKitC-1-S3-1-N16R8-development-connectable/dp/B0F3XMYYQY))
 
 ## Documentatie-index
 
@@ -17,7 +17,9 @@ Doel: een soldeerbare carrier-PCB voor een ESP32-S3 DevKit, bedoeld voor kleine 
 | [hardware/schematic-netlist.md](hardware/schematic-netlist.md) | Schema/netlist mensentaal |
 | [hardware/pcb-layout-plan.md](hardware/pcb-layout-plan.md) | PCB-layoutplan |
 | [docs/risk-checklist-pre-production.md](docs/risk-checklist-pre-production.md) | Risico’s vóór productie |
-| [docs/kicad-next-steps.md](docs/kicad-next-steps.md) | Veilige volgende stap KiCad |
+| [docs/kicad-next-steps.md](docs/kicad-next-steps.md) | KiCad status en volgende stappen |
+| [kicad/](kicad/) | **KiCad placeholder** — open `esp32-s3-utility-carrier.kicad_pro` |
+| [CHANGELOG.md](CHANGELOG.md) | Wijzigingslog |
 | [hardware/measurements.md](hardware/measurements.md) | **Werkplaats meetformulier** |
 | [docs/pcb-briefing.md](docs/pcb-briefing.md) | Oorspronkelijke briefing (archief) |
 
@@ -36,7 +38,7 @@ Doel: een soldeerbare carrier-PCB voor een ESP32-S3 DevKit, bedoeld voor kleine 
 
 1. ~~Specificatie, pinout, BOM, risico-check~~ (gedaan in v0.9 docs)
 2. **Werkplaatsmetingen** ter verificatie in `hardware/measurements.md` (werkwaarden staan al als Espressif-ref)
-3. KiCad schema + placeholder PCB (`docs/kicad-next-steps.md`)
+3. ~~KiCad placeholder~~ — open [`kicad/esp32-s3-utility-carrier.kicad_pro`](kicad/esp32-s3-utility-carrier.kicad_pro) (bekijken/ERC; **niet bestellen**)
 4. Geen Gerbers vóór ERC/DRC + risico-checklist + metingen
 5. v1 kale PCB, zelf solderen
 6. PCBA pas v2/v3

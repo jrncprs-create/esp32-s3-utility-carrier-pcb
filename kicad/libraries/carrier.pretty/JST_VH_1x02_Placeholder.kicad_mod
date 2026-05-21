@@ -1,0 +1,11 @@
+(footprint "JST_VH_1x02_Placeholder" (version 20240108) (generator "generate_placeholder.py")
+
+  (descr "JST-VH 2p main power placeholder 3.96mm pitch")
+  (tags "JST VH power")
+  (attr through_hole)
+  (fp_text reference "J_MAIN" (at 1.98 -4) (layer "F.SilkS"))
+  (fp_text value "5V_MAIN" (at 1.98 4) (layer "F.Fab") hide)
+  (pad "1" thru_hole rect (at 0 0) (size 2.0 2.0) (drill 1.2) (layers "*.Cu" "*.Mask"))
+  (pad "2" thru_hole oval (at 3.96 0) (size 2.0 2.0) (drill 1.2) (layers "*.Cu" "*.Mask"))
+
+)
