@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-05-21
+
+### Changed
+
+- PCB placeholder layout cleanup: zones for power (top-left), ESP center, LED column right,
+  AHCT near LEDs, sensor/OLED/UI cluster lower-left, W5500 bottom-left with clearance.
+- All connectors verified inside 90×65 mm outline (`verify_pcb_layout()`).
+- Removed diagonal placeholder copper; short horizontal 5V/GND stubs only (airwires otherwise).
+- Silk labels: LED1–3 5-tube, LED4 AUX, W5500 optional, ESP footprint not final.
+
 ## [0.2.0] — 2026-05-21
 
 ### Added

@@ -1,110 +1,60 @@
-# PCB-layoutplan (tekst) v0.9
+# PCB-layoutplan (tekst) v0.3
 
-**Boardgrootte:** nog vrij — richting **~90 × 65 mm** na ESP-meting (twee USB’s + connectoren aan randen).  
-**ESP32-footprint:** **VOORLOPIG** (Espressif-ref, diymore B0F3XMYYQY) — zie `hardware/measurements.md`.
+**Boardgrootte:** **90 × 65 mm** (placeholder).  
+**ESP32-footprint:** **VOORLOPIG** — zie `hardware/measurements.md`.  
+**KiCad:** posities worden gegenereerd door `kicad/tools/generate_placeholder.py` (`BOARD_W/H`, placement list).
 
 ---
 
-## 1. Zones (functioneel)
+## 1. Zones (v0.3)
 
 ```text
 +------------------------------------------------------------------+
-|  [M3]                                              [M3]          |
-|   J_MAIN/VH          J_LED1  J_LED2  J_LED3                      |
-|   C_MAIN             (LED rand)                                    |
-|   PAD_PWR                                                          |
-|                                                                    |
-|        +---------------- ESP32 ZONE (TBD) ----------------+       |
-|        |  [USB cutout beide kanten]                        |       |
-|        |  F_ESP 2x20                                       |       |
-|        +---------------------------------------------------+       |
-|   U2 AHCT125 + C_AHCT                                              |
-|                                                                    |
-|   J_SERVO1  J_SERVO2   C_SERVO    SJ_SERVO                         |
-|   (servo rand)                                                     |
-|                                                                    |
-|   J_LD2450                    F_OLED / controls                    |
-|   (sensor rand)               SW1-3 ENC1 J_BTN J_ENC J_OLED        |
-|                                                                    |
-|   J_I2C  J_GPIO   [proto 6x7]                      [M3]    [M3]  |
+| POWER          |     USB/antenna keep-out (Dwgs.User)            |
+| J_MAIN C_*     |     +-------- ESP (F_ESP) --------+  LED1-3    |
+| SJ_SERVO       |     |  NIET DEFINITIEF            |  5-TUBE    |
+|                |     +-----------------------------+  J_LED*    |
+| SERVO          |              U2 AHCT125 ---------->  (right)  |
+| J_SERVO*       |                                                 |
+|                |  SENSOR/OLED/I2C cluster                         |
+| J_LD J_OLED    |  J_BTN J_ENC (UI)                                |
+| J_I2C F_OLED   |                                                 |
+| W5500 (8p)     |  OPTIONAL / NOT POPULATED                        |
 +------------------------------------------------------------------+
 ```
 
 ---
 
-## 2. Plaatsingregels
+## 2. Plaatsingregels (v0.3)
 
 | Element | Positie | Reden |
 |---|---|---|
-| **F_ESP** | Centrum, iets naar **linker** helft | USB naar **boven/onder** rand (meet welke kant op clone) |
-| **USB keep-out** | Boardrand + 3 mm vrij | DevKit USB-C stick-out |
-| **Antenne keep-out** | Boven DevKit module | Geen copper/gnd onder antenne (Espressif guideline) |
-| **J_MAIN** | **Linkerboven** of **linker** rand | Power komt binnen; kort pad naar C_MAIN |
-| **C_MAIN** | &lt; 15 mm van J_MAIN | Inrush/filter |
-| **U2 + C_AHCT** | &lt; 20 mm van F_ESP GPIO 17–21 kant | Korte data-lijnen |
-| **J_LED1–3** | **Rechter** of **boven** rand, gegroepeerd | Kabels naar LED-installaties |
-| **J_SERVO + C_SERVO + SJ** | **Onder** of **rechteronder** rand | Dikke 5V_SERVO sporen naar rand |
-| **J_LD2450** | **Linker** of **onder** rand, apart van servo power | Sensor kabel weg van servo EMI |
-| **Controls** | **Onder** rand (frontpaneel) | OLED, knoppen, encoder bij gebruiker |
-| **Proto** | **Rechteronder** hoek | Niet onder ESP32 |
-| **Montage M3** | 4 hoeken, min. 5 mm van boardrand | Standaard doos |
+| **J_MAIN … C_SERVO** | Linksboven (y≈4 mm) | Korte 5V/GND stubs |
+| **F_ESP** | Centrum (28, 10) | Binnen outline; USB keep-out boven |
+| **U2 + C_AHCT** | Tussen ESP en LED-kolom | Korte AHCT → LED data |
+| **J_LED1–3** | Rechterrand, verticaal | 5-buizen outputs |
+| **J_LED4** | Rechts onder LED1–3 | AUX / reserve |
+| **J_LD2450, J_OLED, J_I2C, F_OLED** | Linkeronder cluster | Sensor + display bedrading |
+| **SW*, J_BTN, J_ENC** | Onder midden | Frontpaneel UI |
+| **J_W5500** | Onder links (8, 57) | 17,5 mm breedte; niet buiten board |
+| **Routing** | Geen lange diagonalen | Placeholder: airwires OK |
 
 ---
 
-## 3. Routing
+## 3. Silk (placeholder)
 
-| Net | Breedte (1 oz) | Methode |
-|---|---|---|
-| 5V_MAIN, 5V_SERVO | **≥ 1,0 mm** (servo **≥ 1,2 mm** indien 2 A) | Prefer bottom + via naar JST |
-| GND | Pour + **≥ 1,0 mm** terug naar J_MAIN | Star bij power in |
-| LED DATA | 0,3–0,4 mm | Kort AHCT → R → JST |
-| I2C | 0,25 mm, parallel kort | Optioneel geen via’s onder ESP |
-| UART LD2450 | 0,3 mm | Kruis GND niet parallel lang met 5V_SERVO |
-| PWM servo | 0,3 mm | Kort naar header |
-
-**Via’s:** minimaal voor power; signalen liever één laag waar mogelijk.
-
----
-
-## 4. Silkscreen (verplicht op PCB)
-
-- Projectnaam + **v1** + datum
-- **NIET DEFINITIEF FOOTPRINT** in kleine tekst bij ESP (verwijderen na meting)
-- Per JST: **pin1 vierkant** + volgorde `5V|GND|DATA` etc. **≥ 1,5 mm tekst**
-- LD2450: `LD_TX→PIN3` `LD_RX←PIN4`
-- Servo: `GND|5V|PWM`
-- Polariteit `+` bij elco’s
-- SJ_SERVO: `CLOSED = joint MAIN+SERVO`
-
----
-
-## 5. Laagstack
-
-| Laag | Gebruik |
+| Tekst | Zone |
 |---|---|
-| F.Cu | Signaal + componenten TH |
-| B.Cu | 5V pours, GND pour, extra power |
-| Edge.Cuts | Rechthoek + eventueel afgeronde hoek 2 mm |
+| `LED1-3: 5-TUBE OUTPUT` | Rechtsboven |
+| `LED4: AUX / RESERVE` | Rechts midden |
+| `W5500 OPTIONAL / NOT POPULATED` | Boven J_W5500 |
+| `ESP FOOTPRINT NIET DEFINITIEF` | Onder ESP-zone |
 
 ---
 
-## 6. Design rule checklist (layout)
+## 4. Nog niet in v0.3
 
-- [ ] Min. 0,3 mm clearance copper (fab standaard 6/6 mil)
-- [ ] Drill ≥ 0,3 mm voor via, M3 = 3,2 mm
-- [ ] Geen traces onder ESP32 antenne
-- [ ] Testpunten optioneel op 5V_MAIN, 5V_SERVO, 3V3, GND (1 mm ring)
-
----
-
-## 7. Volgorde plaatsen in KiCad
-
-1. Board outline + M3 holes (na behuizing/ESP meting)
-2. F_ESP placeholder + USB keep-out
-3. J_MAIN + C_MAIN + pours
-4. U2 + LED chain + J_LED
-5. Servo rail + SJ + J_SERVO + C_SERVO
-6. Sensor + I2C + controls
-7. Proto + silkscreen review
-
-Zie `docs/kicad-next-steps.md`.
+- Definitieve ESP-meting en footprint
+- Volledige copper routing
+- M3 montagegaten (footprints in layoutplan v0.9, nog niet in KiCad placeholder)
+- Proto-gaten vak
