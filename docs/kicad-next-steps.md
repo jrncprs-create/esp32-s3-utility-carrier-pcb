@@ -1,6 +1,6 @@
 # KiCad — status en volgende stappen
 
-## Wat is nu gegenereerd (placeholder v0.7)
+## Wat is nu gegenereerd (placeholder v0.8)
 
 | Item | Locatie | Status |
 |---|---|---|
@@ -9,11 +9,11 @@
 | PCB | `kicad/esp32-s3-utility-carrier.kicad_pcb` | **130×85 mm**, placement + partial copper |
 | Generator | `kicad/tools/generate_placeholder.py` | `PCB_PLACE` + `pcb_routing.py` |
 
-### PCB (v0.7)
+### PCB (v0.8)
 
 - Zones: power, servo (links), ESP (TBD footprint), sensor/display, UI/buttons, LED, W5500 (TBD)
-- **Copper:** LED chain, U2 supply, main in, LED/servo power distribution
-- **Ratsnest OK:** sensor, OLED/I2C, UI buttons, W5500 (until module measured)
+- **Copper:** LED **data** chain + short C_AHCT at U2 only (0.25 mm, local paths)
+- **Ratsnest OK:** power, servo, LED 5V/GND, sensor, UI, W5500
 - Geen zone-pour, geen Gerbers in repo
 
 ### Bewust **niet** in repo

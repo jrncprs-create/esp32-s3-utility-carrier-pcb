@@ -10,13 +10,13 @@ from pathlib import Path
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from pcb_routing import build_visible_routing  # noqa: E402
+from pcb_routing import build_led_data_routing  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 LIBS = ROOT / "libraries"
 PRETTY = LIBS / "carrier.pretty"
 PROJECT = "esp32-s3-utility-carrier"
-DOC_REV = "0.7-placeholder"
+DOC_REV = "0.8-placeholder"
 
 # PCB placement v0.7 — approved layout plan (mm, KiCad origin lower-left, Y up).
 BOARD_W = 130.0
@@ -550,7 +550,7 @@ def write_project() -> None:
         "sheets": [["root", f"{PROJECT}.kicad_sch"]],
         "text_variables": {
             "PROJECT": "ESP32-S3 Utility Carrier v1",
-            "STATUS": "v0.7 PLACEHOLDER - NOT FOR PRODUCTION",
+            "STATUS": "v0.8 PLACEHOLDER - NOT FOR PRODUCTION",
         },
     }
     (ROOT / f"{PROJECT}.kicad_pro").write_text(json.dumps(pro, indent=2) + "\n", encoding="utf-8")
@@ -925,7 +925,7 @@ def write_schematic() -> None:
 
     # Notes
     b.items.append(
-        f'  (text "PLACEHOLDER SCHEMATIC v0.7 - run ERC in KiCad\\n'
+        f'  (text "PLACEHOLDER SCHEMATIC v0.8 - run ERC in KiCad\\n'
         f"ESP32 footprint NOT FINAL - see measurements.md\\n"
         f'Do NOT order PCB / no Gerbers"\n'
         f"    (at 30 30 0) (effects (font (size 1.5 1.5)) (justify left)) (uuid {uid()}))\n"
@@ -1180,7 +1180,7 @@ def write_pcb() -> None:
     fpmap = {ref: libfp for ref, _val, libfp, _x, _y in placements}
     net_ids = {name: i for i, name in enumerate(nets)}
     items.append(
-        build_visible_routing(PCB_PLACE, PCB_ROTATE, fpmap, net_ids)
+        build_led_data_routing(PCB_PLACE, PCB_ROTATE, fpmap, net_ids)
     )
 
     pcb = f"""(kicad_pcb (version 20240108) (generator "generate_placeholder.py")
@@ -1272,7 +1272,7 @@ Open in KiCad:
 |---|---|
 | `esp32-s3-utility-carrier.kicad_pro` | Project root |
 | `esp32-s3-utility-carrier.kicad_sch` | Placeholder schematic |
-| `esp32-s3-utility-carrier.kicad_pcb` | Placeholder PCB (130×85 mm, v0.7 layout + routing pass) |
+| `esp32-s3-utility-carrier.kicad_pcb` | Placeholder PCB (130×85 mm, v0.8 LED-data routing) |
 | `libraries/carrier.kicad_sym` | F_ESP, SN74AHCT125N, SJ_SERVO |
 | `libraries/carrier.pretty/` | Placeholder footprints |
 
@@ -1331,7 +1331,7 @@ def main() -> None:
     if re.search(r"\(zone\b", text):
         raise RuntimeError("PCB must not contain copper pour zones")
     if not re.search(r"\(segment\b", text):
-        raise RuntimeError("PCB expected visible routing segments (v0.7)")
+        raise RuntimeError("PCB expected LED data routing segments (v0.8)")
     print(f"Generated KiCad placeholder in {ROOT} ({BOARD_W}x{BOARD_H} mm)")
 
 

@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [0.8.0] — 2026-05-21
+
+### Changed
+
+- Revert board-wide power/GND routing (v0.7); **placement unchanged** (v0.7 zones).
+- Add **LED-data-only** routing pass: ESP GPIO → U2 → R_LED → J_LED DATA, plus short
+  C_AHCT at U2; thin 0.25 mm tracks, 45° bends, routes avoid ESP USB/ANT keep-outs.
+- Servo/main/LED power, sensor/UI, W5500 remain ratsnest.
+
 ## [0.7.0] — 2026-05-21
 
 ### Changed
