@@ -851,16 +851,19 @@ def write_schematic() -> None:
     ]
     for net, dy in w5500_pins:
         b.glabel(net, wx - 12, wy + dy, 180)
+    w5500_note = (
+        "W5500 OPTIONAL / NOT POPULATED\\n"
+        "Bedrade module voor toekomstige Art-Net/sACN route\\n"
+        "SPI: GPIO5/13/14 CS47 RST4 INT39 (zie pinout-table.md)"
+    )
     b.items.append(
-        f'  (text "W5500 OPTIONAL / NOT POPULATED\\n'
-        f"Bedrade module voor toekomstige Art-Net/sACN route\\n"
-        f"SPI: GPIO5/13/14 CS47 RST4 INT39 (zie pinout-table.md)\\n"
+        f'  (text "{w5500_note}"\n'
         f"    (at {wx - 5} {wy - 12} 0) (effects (font (size 1.2 1.2)) (justify left)) (uuid {uid()}))\n"
     )
 
     # Notes
     b.items.append(
-        f'  (text "PLACEHOLDER SCHEMATIC v0.2 - run ERC in KiCad\\n'
+        f'  (text "PLACEHOLDER SCHEMATIC v0.3 - run ERC in KiCad\\n'
         f"ESP32 footprint NOT FINAL - see measurements.md\\n"
         f'Do NOT order PCB / no Gerbers"\n'
         f"    (at 30 30 0) (effects (font (size 1.5 1.5)) (justify left)) (uuid {uid()}))\n"
