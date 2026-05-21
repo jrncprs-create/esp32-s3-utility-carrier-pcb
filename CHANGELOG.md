@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [0.6.0] — 2026-05-21
+
+### Changed
+
+- PCB component placement from explicit **mm coordinate table** (`PCB_PLACE` / `PCB_SILK` in
+  `kicad/tools/generate_placeholder.py`); `DOC_REV` `0.6-placeholder`.
+- Board **130 × 85 mm**, M3 at (7,7), (123,7), (7,78), (123,78); no zone flood boxes; small
+  horizontal silk only; `verify_no_overlap()` on generate.
+- **F_ESP** anchor **x = 45** (table 42 + 3 mm) for 1 mm clearance vs **J_I2C** @ (36,58) with
+  2×20 placeholder width; silk labels nudged where table coords hit parts (see generator comments).
+- Thin ESP USB/ANT keep-outs + dashed **30 × 16 mm** W5500 reserve (Dwgs.User); airwires only.
+
 ## [0.5.0] — 2026-05-21
 
 ### Changed
